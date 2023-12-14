@@ -5,16 +5,27 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:MovieEditor"
         xmlns:ui="http://schemas.modernwpf.com/2019"
+        xmlns:b="clr-namespace:MovieEditor.Views.Behavior"
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800"
         ui:WindowHelper.UseModernWindowStyle="True">
 
     <ui:SimpleStackPanel Margin="12" Spacing="24">
+        <Button Content="テスト" Command="{Binding TestCommand}" />
+        <ui:SimpleStackPanel Orientation="Horizontal">
+            <TextBox 
+                Text="{Binding OutDirectory}"
+                Margin="10" Width="700" />
+            <Button 
+                Command="{Binding ReferOutDirectoryCommand}"
+                Content="参照" />
+        </ui:SimpleStackPanel>
         <TextBox 
             Text="{Binding LogHistory}"
             IsReadOnly="True"
             TextWrapping="Wrap" 
             VerticalScrollBarVisibility="Visible"
-            Height="200" Width="700" />
+            b:TextBoxBehavior.AutoScrollToEnd="True"
+            Height="200" Width="750" />
     </ui:SimpleStackPanel>
 </Window>

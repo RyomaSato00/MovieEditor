@@ -16,4 +16,9 @@ internal class ModelManager
         _logSender.SendLog("テスト１");
         _logSender.SendLog("テスト２");
     }
+
+    public void Debug(string message)
+    {
+        _logSender.SendLog(message);
+    }
 }
