@@ -1,14 +1,20 @@
 
+using MovieEditor.Models.Json;
+
 namespace MovieEditor.Models;
 
-internal class ModelManager
+internal class ModelManager : IDisposable
 {
     private readonly LogSender _logSender;
-    public ILogServer LogServer => _logSender;
+    private readonly JsonManager _jsonManager;
 
-    public ModelManager()
+    public ILogServer LogServer => _logSender;
+    public ISettingReferable SettingReferable => _jsonManager;
+
+    public ModelManager(Action<string> OnSendLogEventHandler)
     {
-        _logSender = new LogSender();
+        _logSender = new LogSender(OnSendLogEventHandler);
+        _jsonManager = new JsonManager(_logSender);
     }
 
     public void Test()
@@ -17,8 +23,15 @@ internal class ModelManager
         _logSender.SendLog("テスト２");
     }
 
+    public void SendLog(string message, LogLevel level) => _logSender.SendLog(message, level);
+
     public void Debug(string message)
     {
-        _logSender.SendLog(message);
+        _logSender.SendLog(message, LogLevel.Debug);
+    }
+
+    public void Dispose()
+    {
+        _jsonManager.SaveMainSettings();
     }
 }

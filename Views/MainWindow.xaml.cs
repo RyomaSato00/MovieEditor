@@ -17,9 +17,19 @@ namespace MovieEditor.Views;
 /// </summary>
 public partial class MainWindow : Window
 {
+    private readonly MainWindowViewModel _mainWindowViewModel;
     public MainWindow()
     {
         InitializeComponent();
-        DataContext = new MainWindowViewModel();
+        _mainWindowViewModel = new MainWindowViewModel();
+        DataContext = _mainWindowViewModel;
+        Closing += (_, _) => _mainWindowViewModel.Dispose();
     }
+
+    private void SourceList_OnDrop(object sender, DragEventArgs e)
+    {
+        if (sender is not ListView) return;
+        _mainWindowViewModel.SourceList_OnDrop(e);
+    }
+
 }

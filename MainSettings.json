@@ -1,0 +1,9 @@
+{
+  "OutputFolder": "C:\\Users",
+  "AttachedNameTag": "cmp",
+  "ScaleWidth": 1280,
+  "ScaleHeight": 720,
+  "FrameRate": 24,
+  "IsAudioEraced": true,
+  "Codec": "libx265"
+}

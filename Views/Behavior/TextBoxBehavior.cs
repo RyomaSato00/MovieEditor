@@ -20,9 +20,13 @@ internal class TextBoxBehavior
     public static readonly DependencyProperty AutoScrollToEndProperty = 
     DependencyProperty.RegisterAttached
     (
+        // プロパティの名前
         "AutoScrollToEnd",
+        // プロパティの型
         typeof(bool),
+        // このプロパティの所有者の型
         typeof(TextBoxBehavior),
+        // プロパティの初期値をfalseに設定し、プロパティ変更時のイベントハンドラにIsTextChangedを設定する
         new UIPropertyMetadata(false, IsTextChanged)
     );
 

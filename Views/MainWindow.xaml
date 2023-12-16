@@ -5,13 +5,63 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:MovieEditor"
         xmlns:ui="http://schemas.modernwpf.com/2019"
-        xmlns:b="clr-namespace:MovieEditor.Views.Behavior"
+        xmlns:behavior="clr-namespace:MovieEditor.Views.Behavior"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800"
+        Title="MainWindow" Height="800" Width="800"
         ui:WindowHelper.UseModernWindowStyle="True">
 
     <ui:SimpleStackPanel Margin="12" Spacing="24">
-        <Button Content="テスト" Command="{Binding TestCommand}" />
+		<ui:SimpleStackPanel Orientation="Horizontal">
+            <Button Margin="6" Content="テスト" Command="{Binding TestCommand}" />
+			<Button Margin="6" Content="ファイルを追加" Command="{Binding ReferSourceFilesCommand}" />
+			<Button Margin="6" Content="クリア" Command="{Binding ClearSourceFilesCommand}" />
+		</ui:SimpleStackPanel>
+		<ListView Name="SourceList" Margin="10" Height="300" 
+            ScrollViewer.VerticalScrollBarVisibility="Visible"
+            behavior:ListViewDragBehavior.DragOverEffect="True"
+            behavior:ListViewHorizontalScrollBehavior.ShiftHorizontalScroll="True"
+            Drop="SourceList_OnDrop"
+            ItemsSource="{Binding MovieInfoList}" >
+			<ListView.View>
+                <GridView>
+                    <GridViewColumn Width="40">
+                        <GridViewColumn.CellTemplate>
+                            <DataTemplate>
+                                <CheckBox IsChecked="True" />
+                            </DataTemplate>
+                        </GridViewColumn.CellTemplate>
+                    </GridViewColumn>
+                    <GridViewColumn
+                        Width="250"
+                        DisplayMemberBinding="{Binding FileName}"
+                        Header="ファイル名" />
+					<GridViewColumn
+						Width="80"
+                        DisplayMemberBinding="{Binding FileSizeString}"
+						Header="サイズ"/>
+					<GridViewColumn
+                        Width="100"
+                        DisplayMemberBinding="{Binding FormattedDuration}"
+						Header="再生時間" />
+					<GridViewColumn
+						Width="150"
+                        DisplayMemberBinding="{Binding ScaleString}"
+						Header="解像度(W : H)" />
+					<GridViewColumn
+						Width="80"
+                        DisplayMemberBinding="{Binding FrameRateString}"
+						Header="フレーム率" />
+                    <GridViewColumn
+                        Width="100"
+                        DisplayMemberBinding="{Binding VideoBitRateString}"
+                        Header="ビットレート" />
+					<GridViewColumn
+						Width="100"
+                        DisplayMemberBinding="{Binding VideoCodec}"
+						Header="動画コーデック" />
+                </GridView>				
+			</ListView.View>
+		</ListView>
         <ui:SimpleStackPanel Orientation="Horizontal">
             <TextBox 
                 Text="{Binding OutDirectory}"
@@ -25,7 +75,7 @@
             IsReadOnly="True"
             TextWrapping="Wrap" 
             VerticalScrollBarVisibility="Visible"
-            b:TextBoxBehavior.AutoScrollToEnd="True"
+            behavior:TextBoxBehavior.AutoScrollToEnd="True"
             Height="200" Width="750" />
     </ui:SimpleStackPanel>
 </Window>
