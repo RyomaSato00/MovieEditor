@@ -32,4 +32,22 @@ public partial class MainWindow : Window
         _mainWindowViewModel.SourceList_OnDrop(e);
     }
 
+    private void SourceList_OnItemDoubleClicked(object sender, MouseButtonEventArgs e)
+    {
+        if(sender is not ListViewItem listViewItem) return;
+        if(listViewItem.DataContext is not SourceListItemElement item) return;
+        _mainWindowViewModel.SourceList_OnItemDoubleClicked(item);
+    }
+
+    private void SourceListHeader0_OnChecked(object sender, RoutedEventArgs e)
+    {
+        if(sender is not CheckBox) return;
+        _mainWindowViewModel.SourceListHeader0_OnChecked(true);
+    }
+
+    private void SourceListHeader0_OnUnchecked(object sender, RoutedEventArgs e)
+    {
+        if(sender is not CheckBox) return;
+        _mainWindowViewModel.SourceListHeader0_OnChecked(false);
+    }
 }

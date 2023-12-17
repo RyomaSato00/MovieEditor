@@ -60,18 +60,14 @@ internal class ListViewHorizontalScrollBehavior
     private static void OnSizeChanged(object sender, SizeChangedEventArgs e)
     {
         if (sender is not ListView listView) return;
+        // このListViewのScrollViewerをすでに保存済ならなにもしない
+        if (_scrollViewerStore.ContainsKey(listView)) return;
+        // ScrollViewerを取得
         var scrollViewer = WpfApi.FindVisualChild<ScrollViewer>(listView);
-        if (scrollViewer is null) return;
 
-        // 横スクロールバーが表示された
-        if (scrollViewer.ComputedHorizontalScrollBarVisibility == Visibility.Visible)
-        {
-            _scrollViewerStore.Add(listView, scrollViewer);
-        }
-        else
-        {
-            _scrollViewerStore.Remove(listView);
-        }
+        if (scrollViewer is null) return;
+        // ListViewとScrollViewerの紐づけを保存
+        _scrollViewerStore.Add(listView, scrollViewer);
     }
 
     private static void OnWheeled(object sender, MouseWheelEventArgs e)
@@ -83,7 +79,8 @@ internal class ListViewHorizontalScrollBehavior
         {
             // マウスホイールの回転量を取得し、横方向にスクロール
             var scrollViewer = _scrollViewerStore[listView];
-            scrollViewer.ScrollToHorizontalOffset(scrollViewer.HorizontalOffset - e.Delta);
+            // マウスホイール量をそのままスクロールに反映すると速すぎるのでホイール量を0.5倍する
+            scrollViewer.ScrollToHorizontalOffset(scrollViewer.HorizontalOffset - e.Delta * 0.5);
             e.Handled = true;
         }
     }

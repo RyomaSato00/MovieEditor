@@ -12,63 +12,131 @@
 
     <ui:SimpleStackPanel Margin="12" Spacing="24">
 		<ui:SimpleStackPanel Orientation="Horizontal">
-            <Button Margin="6" Content="テスト" Command="{Binding TestCommand}" />
+            <Button Margin="6" Content="テスト" Command="{Binding Test2Command}" />
 			<Button Margin="6" Content="ファイルを追加" Command="{Binding ReferSourceFilesCommand}" />
 			<Button Margin="6" Content="クリア" Command="{Binding ClearSourceFilesCommand}" />
 		</ui:SimpleStackPanel>
-		<ListView Name="SourceList" Margin="10" Height="300" 
+		<ListView Name="SourceList" Margin="10" Height="300" Width="750"
             ScrollViewer.VerticalScrollBarVisibility="Visible"
             behavior:ListViewDragBehavior.DragOverEffect="True"
             behavior:ListViewHorizontalScrollBehavior.ShiftHorizontalScroll="True"
             Drop="SourceList_OnDrop"
             ItemsSource="{Binding MovieInfoList}" >
+			<ListView.ItemContainerStyle>
+				<!--各項目をダブルクリックしたときのイベントハンドラを設定したい
+				    ただし、Styleを定義するとuiデザインが一部デフォルトに上書きされてしまうため、
+					BasedOnでModernWpfのDefaultListViewItemStyleを参照する-->
+				<Style TargetType="ListViewItem" BasedOn="{StaticResource DefaultListViewItemStyle}" >
+					<EventSetter Event="MouseDoubleClick" Handler="SourceList_OnItemDoubleClicked" />
+				</Style>
+			</ListView.ItemContainerStyle>
 			<ListView.View>
                 <GridView>
-                    <GridViewColumn Width="40">
-                        <GridViewColumn.CellTemplate>
+                    <GridViewColumn Width="50">
+						<!--GridViewColumn.Headerから直接CheckBoxを指定するとイベントハンドラの指定ができないため
+						    テンプレートを作ることでチェック時のイベントを取り出せるようにする-->
+                        <GridViewColumn.HeaderTemplate>
                             <DataTemplate>
-                                <CheckBox IsChecked="True" />
+								<!--MainWindowViewModelのプロパティIsAllCheckedをバインドさせたいが、
+								    ItemsSourceにMovieInfoListをバインドさせているため、
+									そのままIsAllCheckedをバインドすると、MovieInfoListの要素からIsAllCheckedプロパティを探してしまう
+									MainWindowViewModelからIsAllCheckedを参照するようにする-->
+                                <CheckBox
+                                    IsChecked="{Binding DataContext.IsAllChecked, RelativeSource={RelativeSource AncestorType=ListView}}"
+                                    Checked="SourceListHeader0_OnChecked" 
+                                    Unchecked="SourceListHeader0_OnUnchecked" />
                             </DataTemplate>
-                        </GridViewColumn.CellTemplate>
+                        </GridViewColumn.HeaderTemplate>
                     </GridViewColumn>
-                    <GridViewColumn
-                        Width="250"
-                        DisplayMemberBinding="{Binding FileName}"
-                        Header="ファイル名" />
-					<GridViewColumn
-						Width="80"
-                        DisplayMemberBinding="{Binding FileSizeString}"
-						Header="サイズ"/>
-					<GridViewColumn
-                        Width="100"
-                        DisplayMemberBinding="{Binding FormattedDuration}"
-						Header="再生時間" />
-					<GridViewColumn
-						Width="150"
-                        DisplayMemberBinding="{Binding ScaleString}"
-						Header="解像度(W : H)" />
-					<GridViewColumn
-						Width="80"
-                        DisplayMemberBinding="{Binding FrameRateString}"
-						Header="フレーム率" />
-                    <GridViewColumn
-                        Width="100"
-                        DisplayMemberBinding="{Binding VideoBitRateString}"
-                        Header="ビットレート" />
-					<GridViewColumn
-						Width="100"
-                        DisplayMemberBinding="{Binding VideoCodec}"
-						Header="動画コーデック" />
+                    <GridViewColumn Width="250" Header="ファイル名" />
+					<GridViewColumn Width="80" Header="サイズ"/>
+					<GridViewColumn Width="100" Header="再生時間" />
+					<GridViewColumn Width="150" Header="解像度(W : H)" />
+					<GridViewColumn Width="80" Header="フレーム率" />
+                    <GridViewColumn Width="100" Header="ビットレート" />
+					<GridViewColumn Width="100" Header="動画コーデック" />
                 </GridView>				
 			</ListView.View>
+			<!--上でDefaultListViewItemStyleをBasedOnするとGridViewColumnの中でDisplayMemberBindingにより各要素をBindingすることができない。
+			    Templateを定義して、ItemTemplateとして反映させる-->
+            <ListView.ItemTemplate>
+                <DataTemplate>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="50" />
+                            <ColumnDefinition Width="250" />
+                            <ColumnDefinition Width="80" />
+                            <ColumnDefinition Width="100" />
+                            <ColumnDefinition Width="150" />
+                            <ColumnDefinition Width="80" />
+                            <ColumnDefinition Width="100" />
+                            <ColumnDefinition Width="100" />
+                        </Grid.ColumnDefinitions>
+                        <CheckBox Grid.Column="0" IsChecked="{Binding IsChecked}" />
+                        <TextBlock Grid.Column="1" Text="{Binding Info.FileName}" />
+                        <TextBlock Grid.Column="2" Text="{Binding Info.FileSizeString}" />
+                        <TextBlock Grid.Column="3" Text="{Binding Info.FormattedDuration}" />
+                        <TextBlock Grid.Column="4" Text="{Binding Info.ScaleString}" />
+                        <TextBlock Grid.Column="5" Text="{Binding Info.FrameRateString}" />
+                        <TextBlock Grid.Column="6" Text="{Binding Info.VideoBitRateString}" />
+                        <TextBlock Grid.Column="7" Text="{Binding Info.VideoCodec}" />
+                    </Grid>
+                </DataTemplate>
+            </ListView.ItemTemplate>
 		</ListView>
+        <TabControl SelectedIndex="{Binding ProcessMode}">
+            <TabItem Header="動画圧縮">
+                <ui:SimpleStackPanel Orientation="Horizontal" Spacing="10">
+                    <ui:SimpleStackPanel Orientation="Horizontal">
+                        <Label Content="Width :" VerticalContentAlignment="Center" Margin="8" />
+                        <TextBox
+                            Text="{Binding OutputWidth}"
+                            HorizontalContentAlignment="Right"
+                            Height="20" Width="80"/>
+                    </ui:SimpleStackPanel>
+                    <ui:SimpleStackPanel Orientation="Horizontal">
+                        <Label Content="Height :" VerticalContentAlignment="Center" Margin="8" />
+                        <TextBox
+                            Text="{Binding OutputHeight}"
+                            HorizontalContentAlignment="Right"
+                            Height="20" Width="80"/>
+                    </ui:SimpleStackPanel>
+                    <ui:SimpleStackPanel Orientation="Horizontal">
+                        <Label Content="フレーム率 :" VerticalContentAlignment="Center" Margin="8" />
+                        <TextBox
+                            Text="{Binding OutputFrameRate}"
+                            HorizontalContentAlignment="Right"
+                            Height="20" Width="60"/>
+                    </ui:SimpleStackPanel>
+                    <ui:SimpleStackPanel Orientation="Horizontal">
+                        <Label Content="動画コーデック :" VerticalContentAlignment="Center" Margin="8" />
+                        <TextBox
+                            Text="{Binding OutputCodec}"
+                            Height="20" Width="80"/>
+                    </ui:SimpleStackPanel>
+                    <ui:SimpleStackPanel Orientation="Horizontal">
+                        <Label Content="音声削除 :" VerticalContentAlignment="Center" Margin="8" />
+                        <CheckBox IsChecked="{Binding IsAudioEraced}" />
+                    </ui:SimpleStackPanel>
+                </ui:SimpleStackPanel>
+            </TabItem>
+            <TabItem Header="音声抽出">
+                <Button />
+            </TabItem>
+        </TabControl>
         <ui:SimpleStackPanel Orientation="Horizontal">
+			<Label Content="出力先 :" VerticalContentAlignment="Center" />
             <TextBox 
                 Text="{Binding OutDirectory}"
-                Margin="10" Width="700" />
+                Margin="10" Width="450" />
             <Button 
                 Command="{Binding ReferOutDirectoryCommand}"
                 Content="参照" />
+			<Label Content="      " />
+			<Label Content="出力タグ :" VerticalContentAlignment="Center" Margin="8" />
+			<TextBox
+                Text="{Binding OutputNameTag}"
+                Height="30" Width="100" />
         </ui:SimpleStackPanel>
         <TextBox 
             Text="{Binding LogHistory}"
