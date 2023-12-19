@@ -17,6 +17,12 @@ internal class LogSender : ILogSendable, ILogServer
         _logHistory.Add($"[{level}] : {message}");
         OnSendLog?.Invoke(string.Join("\r\n", _logHistory));
     }
+
+    public async void SendLogFromAsync(string message, LogLevel level = LogLevel.Info)
+    {
+        await Task.Yield();
+        SendLog(message, level);
+    }
 }
 
 internal enum LogLevel

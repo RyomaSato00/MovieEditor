@@ -1,4 +1,5 @@
 
+using MovieEditor.Models.Compression;
 using MovieEditor.Models.Json;
 
 namespace MovieEditor.Models;
@@ -11,10 +12,15 @@ internal class ModelManager : IDisposable
     public ILogServer LogServer => _logSender;
     public ISettingReferable SettingReferable => _jsonManager;
 
+    // 仮
+    public ParallelCompressionRunner ParallelComp { get; }
+
     public ModelManager(Action<string> OnSendLogEventHandler)
     {
         _logSender = new LogSender(OnSendLogEventHandler);
         _jsonManager = new JsonManager(_logSender);
+
+        ParallelComp = new ParallelCompressionRunner(_logSender);
     }
 
     public void Test()

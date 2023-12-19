@@ -7,6 +7,7 @@ using System.Windows.Input;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using MovieEditor.Models;
+using MovieEditor.Models.Compression;
 using MovieEditor.Models.Information;
 using MovieEditor.Models.Json;
 
@@ -88,6 +89,7 @@ internal partial class MainWindowViewModel : ObservableObject, IDisposable
         }
     }
 
+    [NotifyCanExecuteChangedFor(nameof(RunCommand))]
     [ObservableProperty] private ObservableCollection<SourceListItemElement> _movieInfoList = [];
 
     [ObservableProperty] private bool _isAllChecked = true;
@@ -139,6 +141,38 @@ internal partial class MainWindowViewModel : ObservableObject, IDisposable
         }
     }
 
+    [RelayCommand(CanExecute = nameof(CanRun))] private void Run()
+    {
+        _modelManager.Debug("実行");
+        RunCompression();
+    }
+
+    private void RunCompression()
+    {
+        CompressionParameter parameter = new()
+        {
+            ScaleWidth = OutputWidth,
+            ScaleHeight = OutputHeight,
+            FrameRate = OutputFrameRate,
+            VideoCodec = OutputCodec,
+            IsAudioEraced = IsAudioEraced
+        };
+        _modelManager.ParallelComp.Run
+        (
+            // チェックを付けたものだけ処理する
+            MovieInfoList.Where(item => item.IsChecked).Select(item => item.Info).ToArray(),
+            OutDirectory,
+            OutputNameTag,
+            parameter
+        );
+    }
+
+    private bool CanRun()
+    {
+        // MovieInfoListが空でなければOK
+        return MovieInfoList.Any();
+    }
+
 
     public void Test()
     {
@@ -160,11 +194,8 @@ internal partial class MainWindowViewModel : ObservableObject, IDisposable
     /// ListViewのDropイベントハンドラ
     /// </summary>
     /// <param name="e"></param>
-    public void SourceList_OnDrop(DragEventArgs e)
+    public void SourceList_OnDrop(string[] dropFiles)
     {
-        var dropFiles = e.Data.GetData(DataFormats.FileDrop) as string[];
-        if (null == dropFiles) return;
-
         IsAllChecked = true;
         GiveSourceFiles(dropFiles);
     }

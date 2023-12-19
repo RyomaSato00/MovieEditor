@@ -1,9 +1,9 @@
 {
-  "OutputFolder": "C:\\Users",
+  "OutputFolder": "C:\\Users\\Ryoma\\Downloads",
   "AttachedNameTag": "cmp",
   "ProcessMode": 0,
-  "ScaleWidth": 1024,
-  "ScaleHeight": 576,
+  "ScaleWidth": 532,
+  "ScaleHeight": 948,
   "FrameRate": 24.0,
   "IsAudioEraced": true,
   "Codec": "hevc"

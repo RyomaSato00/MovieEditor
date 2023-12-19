@@ -29,7 +29,8 @@ public partial class MainWindow : Window
     private void SourceList_OnDrop(object sender, DragEventArgs e)
     {
         if (sender is not ListView) return;
-        _mainWindowViewModel.SourceList_OnDrop(e);
+        if (e.Data.GetData(DataFormats.FileDrop) is not string[] dropFiles) return;
+        _mainWindowViewModel.SourceList_OnDrop(dropFiles);
     }
 
     private void SourceList_OnItemDoubleClicked(object sender, MouseButtonEventArgs e)
