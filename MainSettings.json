@@ -1,10 +1,10 @@
 {
-  "OutputFolder": "C:\\Users\\Ryoma\\Downloads",
+  "OutputFolder": "C:\\OriginalProgramFiles\\WPF\\MovieEditor\\SampleVideo\\出力",
   "AttachedNameTag": "cmp",
   "ProcessMode": 0,
-  "ScaleWidth": 532,
-  "ScaleHeight": 948,
-  "FrameRate": 24.0,
-  "IsAudioEraced": true,
-  "Codec": "hevc"
+  "ScaleWidth": 1080,
+  "ScaleHeight": -1,
+  "FrameRate": -1.0,
+  "IsAudioEraced": false,
+  "Codec": " "
 }

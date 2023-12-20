@@ -62,30 +62,41 @@ internal partial class MainWindowViewModel : ObservableObject, IDisposable
     /// 複数のファイルパスをもとに動画ファイル情報をMovieInfoListに反映する
     /// </summary>
     /// <param name="filePaths"></param>
-    private void GiveSourceFiles(string[] filePaths)
+    private async void GiveSourceFiles(string[] filePaths)
     {
-        // ObservableCollectionはAddRangeを使えない
-        foreach (var filePath in filePaths)
+        // ファイル情報格納用
+        List<MovieInfo> infos = [];
+        // 非同期でファイル情報を取得する
+        await Task.Run(() =>
         {
-            // すでに同一のファイルがある場合は追加しない
-            if (MovieInfoList.Any(item => item.Info.FilePath == filePath)) continue;
+            for(var i = 0; i < filePaths.Length; i++)
+            {
+                // すでに同一のファイルがある場合は追加しない（MovieInfoListへの変更はないため、非同期でも参照可）
+                if (MovieInfoList.Any(item => item.Info.FilePath == filePaths[i])) continue;
 
-            try
-            {
-                MovieInfoList.Add(new SourceListItemElement(MovieInfo.GetMovieInfo(filePath)));
+                try
+                {
+                    infos.Add(MovieInfo.GetMovieInfo(filePaths[i]));
+                }
+                catch (FileNotFoundException e)
+                {
+                    _modelManager.SendLogFromAsync(e.Message, LogLevel.Warning);
+                }
+                catch (ArgumentOutOfRangeException e)
+                {
+                    _modelManager.SendLogFromAsync(e.Message, LogLevel.Warning);
+                }
+                catch (Exception e)
+                {
+                    _modelManager.SendLogFromAsync($"想定外のエラー：{e.Message}", LogLevel.Error);
+                }
             }
-            catch (FileNotFoundException e)
-            {
-                _modelManager.SendLog(e.Message, LogLevel.Warning);
-            }
-            catch (ArgumentOutOfRangeException e)
-            {
-                _modelManager.SendLog(e.Message, LogLevel.Warning);
-            }
-            catch (Exception e)
-            {
-                _modelManager.SendLog($"想定外のエラー{e.Message}", LogLevel.Error);
-            }
+        });
+
+        // MovieInfoListへの変更はメインスレッドで行う必要がある
+        foreach(var info in infos)
+        {
+            MovieInfoList.Add(new SourceListItemElement(info));
         }
     }
 
@@ -182,10 +193,12 @@ internal partial class MainWindowViewModel : ObservableObject, IDisposable
     [RelayCommand]
     private void Test2()
     {
-        foreach (var item in MovieInfoList)
-        {
-            _modelManager.Debug(item.IsChecked.ToString());
-        }
+        // foreach (var item in MovieInfoList)
+        // {
+        //     _modelManager.Debug(item.IsChecked.ToString());
+        // }
+        _modelManager.ParallelComp.Cancel();
+        _modelManager.Debug("キャンセル");
     }
 
     // 以下xamlからBindingできなかったイベントハンドラ等

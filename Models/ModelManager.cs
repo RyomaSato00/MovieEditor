@@ -30,6 +30,7 @@ internal class ModelManager : IDisposable
     }
 
     public void SendLog(string message, LogLevel level) => _logSender.SendLog(message, level);
+    public void SendLogFromAsync(string message, LogLevel level) => _logSender.SendLogFromAsync(message, level);
 
     public void Debug(string message)
     {
@@ -38,6 +39,7 @@ internal class ModelManager : IDisposable
 
     public void Dispose()
     {
+        ParallelComp.Dispose();
         _jsonManager.SaveMainSettings();
     }
 }
