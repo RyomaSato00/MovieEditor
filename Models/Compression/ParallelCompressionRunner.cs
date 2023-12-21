@@ -10,7 +10,7 @@ internal class ParallelCompressionRunner(ILogSendable logger) : IDisposable
     private readonly ILogSendable _logger = logger;
     private CancellationTokenSource? _cancelable = null;
 
-    public async void Run
+    public async Task Run
     (
         MovieInfo[] sources,
         string outputFolder,
@@ -37,11 +37,13 @@ internal class ParallelCompressionRunner(ILogSendable logger) : IDisposable
                 {
                     VideoCompressor.Compress
                     (
-                        movieInfo.FilePath,
+                        movieInfo,
                         GetOutputPath(movieInfo.FilePath, outputFolder, attachedNameTag),
                         parameter,
                         _cancelable.Token
                     );
+
+                    _cancelable.Token.ThrowIfCancellationRequested();
 
                     lock (ParallelLock)
                     {

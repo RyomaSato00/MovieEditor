@@ -129,6 +129,8 @@
                 <Label Content="出力先 :" VerticalContentAlignment="Center" />
                 <TextBox 
                     Text="{Binding OutDirectory}"
+                    behavior:TextBoxDragBehavior.DragOverEffect="True"
+                    Drop="OutDirectory_OnDrop"
                     Margin="10" Width="350" />
                 <Button 
                     Command="{Binding ReferOutDirectoryCommand}"

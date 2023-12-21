@@ -51,4 +51,11 @@ public partial class MainWindow : Window
         if(sender is not CheckBox) return;
         _mainWindowViewModel.SourceListHeader0_OnChecked(false);
     }
+
+    private void OutDirectory_OnDrop(object sender, DragEventArgs e)
+    {
+        if(sender is not TextBox) return;
+        if(e.Data.GetData(DataFormats.FileDrop) is not string[] dropFiles) return;
+        _mainWindowViewModel.OutDirectory_OnDrop(dropFiles[0]);
+    }
 }

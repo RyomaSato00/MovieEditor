@@ -86,6 +86,10 @@ internal partial class MainWindowViewModel : ObservableObject, IDisposable
                 {
                     _modelManager.SendLogFromAsync(e.Message, LogLevel.Warning);
                 }
+                catch(FFMpegCore.Exceptions.FFMpegException)
+                {
+                    _modelManager.SendLogFromAsync($"ファイルが壊れている可能性があります。ファイルを読み込めません：{filePaths[i]}", LogLevel.Warning);
+                }
                 catch (Exception e)
                 {
                     _modelManager.SendLogFromAsync($"想定外のエラー：{e.Message}", LogLevel.Error);
@@ -97,6 +101,17 @@ internal partial class MainWindowViewModel : ObservableObject, IDisposable
         foreach(var info in infos)
         {
             MovieInfoList.Add(new SourceListItemElement(info));
+        }
+    }
+
+    /// <summary>
+    /// チェックのついた項目をリストから削除する
+    /// </summary>
+    private void RemoveProcessFinishedFiles()
+    {
+        for(var i = 0; i < MovieInfoList.Count; i++)
+        {
+            if(MovieInfoList[i].IsChecked) MovieInfoList.RemoveAt(i);
         }
     }
 
@@ -152,13 +167,14 @@ internal partial class MainWindowViewModel : ObservableObject, IDisposable
         }
     }
 
-    [RelayCommand(CanExecute = nameof(CanRun))] private void Run()
+    [RelayCommand(CanExecute = nameof(CanRun))] private async Task Run()
     {
         _modelManager.Debug("実行");
-        RunCompression();
+        await RunCompression();
+        RemoveProcessFinishedFiles();
     }
 
-    private void RunCompression()
+    private async Task RunCompression()
     {
         CompressionParameter parameter = new()
         {
@@ -168,7 +184,7 @@ internal partial class MainWindowViewModel : ObservableObject, IDisposable
             VideoCodec = OutputCodec,
             IsAudioEraced = IsAudioEraced
         };
-        _modelManager.ParallelComp.Run
+        await _modelManager.ParallelComp.Run
         (
             // チェックを付けたものだけ処理する
             MovieInfoList.Where(item => item.IsChecked).Select(item => item.Info).ToArray(),
@@ -240,6 +256,13 @@ internal partial class MainWindowViewModel : ObservableObject, IDisposable
         {
             item.IsChecked = isChecked;
         }
+    }
+
+
+    public void OutDirectory_OnDrop(string directoryPath)
+    {
+        if(false == Directory.Exists(directoryPath)) return;
+        OutDirectory = directoryPath;
     }
 }
 

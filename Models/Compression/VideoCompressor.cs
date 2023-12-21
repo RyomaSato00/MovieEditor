@@ -1,32 +1,57 @@
 using System.Diagnostics;
 using FFMpegCore;
+using MovieEditor.Models.Information;
 
 namespace MovieEditor.Models.Compression;
 
 internal class VideoCompressor
 {
-    public static void Compress(string inputPath, string outputPath, CompressionParameter parameter, CancellationToken cancelToken)
+    public static void Compress(MovieInfo movieInfo, string outputPath, CompressionParameter parameter, CancellationToken cancelToken)
     {
-        ProcessStartInfo info = new("ffmpeg");
-        info.Arguments = MakeArguments(inputPath, outputPath, parameter);
-        info.UseShellExecute = false;
-        info.CreateNoWindow = true;
+        ProcessStartInfo processInfo = new("ffmpeg")
+        {
+            Arguments = MakeArguments(movieInfo, outputPath, parameter),
+            UseShellExecute = false,
+            CreateNoWindow = true
+        };
 
-        using Process process = new() { StartInfo = info };
+        using Process process = new() { StartInfo = processInfo };
         process.Start();
         // proces.WaitForExit();
         while(false == process.HasExited 
         && false == cancelToken.IsCancellationRequested) {}
     }
 
-    private static string MakeArguments(string inputPath, string outputPath, CompressionParameter parameter)
+    private static string MakeArguments(MovieInfo movieInfo, string outputPath, CompressionParameter parameter)
     {
         List<string> argList = [];
-        argList.Add($"-y -i {inputPath}");
+        argList.Add($"-y -i {movieInfo.FilePath}");
 
         if(0 < parameter.ScaleWidth && 0 < parameter.ScaleHeight)
         {
             argList.Add($"-vf scale={parameter.ScaleWidth}:{parameter.ScaleHeight}");
+        }
+        else if(0 >= parameter.ScaleWidth && 0 < parameter.ScaleHeight)
+        {
+            // アスペクト比からWidthを自動計算
+            int autoWidth = parameter.ScaleHeight * movieInfo.AspectRatio.Width / movieInfo.AspectRatio.Height;
+            // 解像度は偶数にする必要がある。
+            if(0 != autoWidth % 2)
+            {
+                autoWidth--;
+            }
+            argList.Add($"-vf scale={autoWidth}:{parameter.ScaleHeight}");
+        }
+        else if(0 < parameter.ScaleWidth && 0 >= parameter.ScaleHeight)
+        {
+            // アスペクト比からHeightを自動計算
+            int autoHeight = parameter.ScaleWidth * movieInfo.AspectRatio.Height / movieInfo.AspectRatio.Width;
+            // 解像度は偶数にする必要がある。
+            if(0 != autoHeight % 2)
+            {
+                autoHeight--;
+            }
+            argList.Add($"-vf scale={parameter.ScaleWidth}:{autoHeight}");
         }
         if(0 < parameter.FrameRate)
         {
