@@ -37,6 +37,7 @@ internal partial class MainWindowViewModel : ObservableObject, IDisposable
         OutputFrameRate = _modelManager.SettingReferable.MainSettings_.FrameRate;
         OutputCodec = _modelManager.SettingReferable.MainSettings_.Codec;
         IsAudioEraced = _modelManager.SettingReferable.MainSettings_.IsAudioEraced;
+        OutputFormat = _modelManager.SettingReferable.MainSettings_.Format;
 
         MovieInfoList.Add(new SourceListItemElement(MovieInfo.GetMovieInfo(@"C:\OriginalProgramFiles\WPF\MovieEditor\SampleVideo\AGDRec_20230901_182924.mp4")));
         MovieInfoList.Add(new SourceListItemElement(MovieInfo.GetMovieInfo(@"C:\OriginalProgramFiles\WPF\MovieEditor\SampleVideo\AGDRec_20231202_173923.mp4")));
@@ -55,6 +56,7 @@ internal partial class MainWindowViewModel : ObservableObject, IDisposable
         _modelManager.SettingReferable.MainSettings_.FrameRate = OutputFrameRate;
         _modelManager.SettingReferable.MainSettings_.Codec = OutputCodec;
         _modelManager.SettingReferable.MainSettings_.IsAudioEraced = IsAudioEraced;
+        _modelManager.SettingReferable.MainSettings_.Format = OutputFormat;
 
         _modelManager.Dispose();
     }
@@ -131,7 +133,8 @@ internal partial class MainWindowViewModel : ObservableObject, IDisposable
             ScaleHeight = OutputHeight,
             FrameRate = OutputFrameRate,
             VideoCodec = OutputCodec,
-            IsAudioEraced = IsAudioEraced
+            IsAudioEraced = IsAudioEraced,
+            Format = OutputFormat
         };
         try
         {
@@ -186,14 +189,14 @@ internal partial class MainWindowViewModel : ObservableObject, IDisposable
         return progressWindowViewModel;
     }
 
+    [ObservableProperty] 
     [NotifyCanExecuteChangedFor(nameof(RunCommand))]
-    [ObservableProperty] private ObservableCollection<SourceListItemElement> _movieInfoList = [];
+    private ObservableCollection<SourceListItemElement> _movieInfoList = [];
 
     [ObservableProperty] private bool _isAllChecked = true;
 
     // ***出力先***
     [ObservableProperty] private string _outDirectory = string.Empty;
-
     [ObservableProperty] private string _outputNameTag = string.Empty;
 
     // ***処理モード***
@@ -201,14 +204,11 @@ internal partial class MainWindowViewModel : ObservableObject, IDisposable
 
     // ***出力設定値***
     [ObservableProperty] private int _outputWidth = 0;
-
     [ObservableProperty] private int _outputHeight = 0;
-
     [ObservableProperty] private double _outputFrameRate = 0;
-
     [ObservableProperty] private string _outputCodec = string.Empty;
-
     [ObservableProperty] private bool _isAudioEraced = false;
+    [ObservableProperty] private string _outputFormat = string.Empty;
 
     [ObservableProperty] private string _logHistory = string.Empty;
 
@@ -257,7 +257,7 @@ internal partial class MainWindowViewModel : ObservableObject, IDisposable
                 break;
 
             default:
-                break;
+                return;
         }
         viewModel?.Dispose();
         RemoveProcessFinishedFiles();
@@ -265,8 +265,9 @@ internal partial class MainWindowViewModel : ObservableObject, IDisposable
 
     private bool CanRun()
     {
-        // MovieInfoListが空でなければOK
-        return MovieInfoList.Any();
+        _modelManager.Debug("can_run");
+        if(0 < MovieInfoList.Count) return true;
+        else return false;
     }
 
 

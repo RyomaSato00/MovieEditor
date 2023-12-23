@@ -2,9 +2,10 @@
   "OutputFolder": "C:\\OriginalProgramFiles\\WPF\\MovieEditor\\SampleVideo\\出力",
   "AttachedNameTag": "cmp",
   "ProcessMode": 0,
-  "ScaleWidth": 500,
+  "ScaleWidth": -1,
   "ScaleHeight": -1,
   "FrameRate": -1.0,
-  "IsAudioEraced": true,
-  "Codec": " hevc"
+  "IsAudioEraced": false,
+  "Codec": " hevc",
+  "Format": "mp4"
 }

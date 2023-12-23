@@ -89,4 +89,5 @@ internal record CompressionParameter
     public double FrameRate { get; init; }
     public string VideoCodec { get; init; } = string.Empty;
     public bool IsAudioEraced { get; init; }
+    public string Format { get; init; } = string.Empty;
 }

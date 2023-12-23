@@ -13,6 +13,8 @@ internal partial class ProgressWindowViewModel : ObservableObject, IDisposable
     {
         _anyProcess = process;
         _windowClose = windowClose;
+        // 処理開始時処理
+        _anyProcess.OnStartProcess += OnStartProcess;
         // 処理進捗更新時処理
         _anyProcess.OnUpdateProgress += OnUpdateProgress;
     }
@@ -21,16 +23,21 @@ internal partial class ProgressWindowViewModel : ObservableObject, IDisposable
     {
         // このクラスと紐づくイベントを削除する
         _anyProcess.OnUpdateProgress -= OnUpdateProgress;
+        _anyProcess.OnStartProcess -= OnStartProcess;
         // ウィンドウを閉じる
         _windowClose.Invoke();
     }
 
-    private void OnUpdateProgress(int progress, int max)
+    private void OnStartProcess(int max)
+    {
+        ProgressMaxCount = max;
+    }
+
+    private void OnUpdateProgress(int progress)
     {
         ProgressCount = progress;
-        ProgressMaxCount = max;
         // 分母が0のときは0
-        ProgressRate = (0 != max) ? (100 * progress / max) : 0;
+        ProgressRate = (0 != ProgressMaxCount) ? (100 * progress / ProgressMaxCount) : 0;
     }
     
     [ObservableProperty] private int _progressCount = 0;

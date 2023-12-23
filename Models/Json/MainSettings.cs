@@ -10,6 +10,7 @@ internal class MainSettings
     public double FrameRate { get; set; } = 24;
     public bool IsAudioEraced { get; set; } = true;
     public string Codec { get; set; } = "hevc";
+    public string Format { get; set; } = "mp4";
 
 }
 

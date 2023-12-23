@@ -7,7 +7,7 @@
         xmlns:ui="http://schemas.modernwpf.com/2019"
         xmlns:behavior="clr-namespace:MovieEditor.Views.Behavior"
         mc:Ignorable="d"
-        Title="MainWindow" Height="800" Width="800"
+        Title="MainWindow" Height="850" Width="800"
         ui:WindowHelper.UseModernWindowStyle="True">
 
     <ui:SimpleStackPanel Margin="12" Spacing="24">
@@ -86,37 +86,47 @@
 		</ListView>
         <TabControl SelectedIndex="{Binding ProcessMode}">
             <TabItem Header="動画圧縮">
-                <ui:SimpleStackPanel Orientation="Horizontal" Spacing="10">
-                    <ui:SimpleStackPanel Orientation="Horizontal">
-                        <Label Content="Width :" VerticalContentAlignment="Center" Margin="8" />
-                        <TextBox
-                            Text="{Binding OutputWidth}"
-                            HorizontalContentAlignment="Right"
-                            Height="20" Width="80"/>
+                <ui:SimpleStackPanel Orientation="Vertical" Spacing="5">
+                    <ui:SimpleStackPanel Orientation="Horizontal" Spacing="10">
+                        <ui:SimpleStackPanel Orientation="Horizontal">
+                            <Label Content="Width :" VerticalContentAlignment="Center" Margin="8" />
+                            <TextBox
+                                Text="{Binding OutputWidth}"
+                                HorizontalContentAlignment="Right"
+                                Height="20" Width="80"/>
+                        </ui:SimpleStackPanel>
+                        <ui:SimpleStackPanel Orientation="Horizontal">
+                            <Label Content="Height :" VerticalContentAlignment="Center" Margin="8" />
+                            <TextBox
+                                Text="{Binding OutputHeight}"
+                                HorizontalContentAlignment="Right"
+                                Height="20" Width="80"/>
+                        </ui:SimpleStackPanel>
+                        <ui:SimpleStackPanel Orientation="Horizontal">
+                            <Label Content="フレーム率 :" VerticalContentAlignment="Center" Margin="8" />
+                            <TextBox
+                                Text="{Binding OutputFrameRate}"
+                                HorizontalContentAlignment="Right"
+                                Height="20" Width="60"/>
+                        </ui:SimpleStackPanel>
+                        <ui:SimpleStackPanel Orientation="Horizontal">
+                            <Label Content="動画コーデック :" VerticalContentAlignment="Center" Margin="8" />
+                            <TextBox
+                                Text="{Binding OutputCodec}"
+                                Height="20" Width="80"/>
+                        </ui:SimpleStackPanel>
+                        <ui:SimpleStackPanel Orientation="Horizontal">
+                            <Label Content="音声削除 :" VerticalContentAlignment="Center" Margin="8" />
+                            <CheckBox IsChecked="{Binding IsAudioEraced}" />
+                        </ui:SimpleStackPanel>
                     </ui:SimpleStackPanel>
-                    <ui:SimpleStackPanel Orientation="Horizontal">
-                        <Label Content="Height :" VerticalContentAlignment="Center" Margin="8" />
-                        <TextBox
-                            Text="{Binding OutputHeight}"
-                            HorizontalContentAlignment="Right"
-                            Height="20" Width="80"/>
-                    </ui:SimpleStackPanel>
-                    <ui:SimpleStackPanel Orientation="Horizontal">
-                        <Label Content="フレーム率 :" VerticalContentAlignment="Center" Margin="8" />
-                        <TextBox
-                            Text="{Binding OutputFrameRate}"
-                            HorizontalContentAlignment="Right"
-                            Height="20" Width="60"/>
-                    </ui:SimpleStackPanel>
-                    <ui:SimpleStackPanel Orientation="Horizontal">
-                        <Label Content="動画コーデック :" VerticalContentAlignment="Center" Margin="8" />
-                        <TextBox
-                            Text="{Binding OutputCodec}"
-                            Height="20" Width="80"/>
-                    </ui:SimpleStackPanel>
-                    <ui:SimpleStackPanel Orientation="Horizontal">
-                        <Label Content="音声削除 :" VerticalContentAlignment="Center" Margin="8" />
-                        <CheckBox IsChecked="{Binding IsAudioEraced}" />
+                    <ui:SimpleStackPanel Orientation="Horizontal" Spacing="10">
+                        <ui:SimpleStackPanel Orientation="Horizontal">
+                            <Label Content="出力形式 :" VerticalContentAlignment="Center" Margin="8" />
+                            <TextBox 
+                                Text="{Binding OutputFormat}"
+                                Height="20" Width="80" />
+                        </ui:SimpleStackPanel>
                     </ui:SimpleStackPanel>
                 </ui:SimpleStackPanel>
             </TabItem>

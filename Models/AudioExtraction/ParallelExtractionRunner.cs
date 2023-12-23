@@ -10,7 +10,8 @@ internal class ParallelExtractionRunner(ILogSendable logger) : IDisposable, IAny
     private readonly ILogSendable _logger = logger;
     private CancellationTokenSource? _cancelable = null;
 
-    public event Action<int, int>? OnUpdateProgress = null;
+    public event Action<int>? OnStartProcess = null;
+    public event Action<int>? OnUpdateProgress = null;
 
     public async Task Run(MovieInfo[] sources, string outputFolder, string attachedNameTag)
     {
@@ -19,6 +20,7 @@ internal class ParallelExtractionRunner(ILogSendable logger) : IDisposable, IAny
         _cancelable?.Cancel();
         _cancelable = new CancellationTokenSource();
         
+        OnStartProcess?.Invoke(allCount);
         var startTime = DateTime.Now;
         await Task.Run(() =>
         {
@@ -42,7 +44,7 @@ internal class ParallelExtractionRunner(ILogSendable logger) : IDisposable, IAny
                         lock(ParallelLock)
                         {
                             finishedCount++;
-                            OnUpdateProgress?.Invoke(finishedCount, allCount);
+                            OnUpdateProgress?.Invoke(finishedCount);
                             _logger.SendLog($"{movieInfo.FileName} has finished ({finishedCount}/{allCount})");
                         }
                     });
