@@ -29,7 +29,7 @@ internal class ModelManager : IDisposable
         _logSender.SendLog("テスト２");
     }
 
-    public void SendLog(string message, LogLevel level) => _logSender.SendLog(message, level);
+    public void SendLog(string message, LogLevel level = LogLevel.Info) => _logSender.SendLog(message, level);
     public void SendLogFromAsync(string message, LogLevel level) => _logSender.SendLogFromAsync(message, level);
 
     public void Debug(string message)

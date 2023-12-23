@@ -10,6 +10,8 @@ internal class ParallelCompressionRunner(ILogSendable logger) : IDisposable
     private readonly ILogSendable _logger = logger;
     private CancellationTokenSource? _cancelable = null;
 
+    public event Action<int, int>? OnUpdateProgress = null;
+
     public async Task Run
     (
         MovieInfo[] sources,
@@ -48,6 +50,7 @@ internal class ParallelCompressionRunner(ILogSendable logger) : IDisposable
                     lock (ParallelLock)
                     {
                         finishedCount++;
+                        OnUpdateProgress?.Invoke(finishedCount, allCount);
                         _logger.SendLog($"{movieInfo.FileName} has finished ({finishedCount}/{allCount})");
                     }
                 });

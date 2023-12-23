@@ -10,6 +10,7 @@ using MovieEditor.Models;
 using MovieEditor.Models.Compression;
 using MovieEditor.Models.Information;
 using MovieEditor.Models.Json;
+using MovieEditor.Views;
 
 namespace MovieEditor.ViewModels;
 
@@ -69,14 +70,14 @@ internal partial class MainWindowViewModel : ObservableObject, IDisposable
         // 非同期でファイル情報を取得する
         await Task.Run(() =>
         {
-            for(var i = 0; i < filePaths.Length; i++)
+            foreach(var filePath in filePaths)
             {
                 // すでに同一のファイルがある場合は追加しない（MovieInfoListへの変更はないため、非同期でも参照可）
-                if (MovieInfoList.Any(item => item.Info.FilePath == filePaths[i])) continue;
+                if (MovieInfoList.Any(item => item.Info.FilePath == filePath)) continue;
 
                 try
                 {
-                    infos.Add(MovieInfo.GetMovieInfo(filePaths[i]));
+                    infos.Add(MovieInfo.GetMovieInfo(filePath));
                 }
                 catch (FileNotFoundException e)
                 {
@@ -88,7 +89,7 @@ internal partial class MainWindowViewModel : ObservableObject, IDisposable
                 }
                 catch(FFMpegCore.Exceptions.FFMpegException)
                 {
-                    _modelManager.SendLogFromAsync($"ファイルが壊れている可能性があります。ファイルを読み込めません：{filePaths[i]}", LogLevel.Warning);
+                    _modelManager.SendLogFromAsync($"ファイルが壊れている可能性があります。ファイルを読み込めません：{filePath}", LogLevel.Warning);
                 }
                 catch (Exception e)
                 {
@@ -109,9 +110,12 @@ internal partial class MainWindowViewModel : ObservableObject, IDisposable
     /// </summary>
     private void RemoveProcessFinishedFiles()
     {
-        for(var i = 0; i < MovieInfoList.Count; i++)
+        // 逆順に削除していくことで、その要素をリストから削除しても、残りの要素のインデックスは変化しない
+        for (var index = MovieInfoList.Count - 1; index >= 0; index--)
         {
-            if(MovieInfoList[i].IsChecked) MovieInfoList.RemoveAt(i);
+            // チェックが付いている項目のみ削除する
+            if(false == MovieInfoList[index].IsChecked) continue;
+            MovieInfoList.RemoveAt(index);
         }
     }
 
@@ -169,8 +173,16 @@ internal partial class MainWindowViewModel : ObservableObject, IDisposable
 
     [RelayCommand(CanExecute = nameof(CanRun))] private async Task Run()
     {
-        _modelManager.Debug("実行");
+        _modelManager.SendLog("圧縮処理開始");
+
+        var progressWindow = new ProgressWindow();
+        var progressWindowViewModel = new ProgressWindowViewModel(_modelManager, progressWindow.Close);
+        progressWindow.DataContext = progressWindowViewModel;
+        // win.ShowDialog();
+        progressWindow.Show();
+
         await RunCompression();
+        progressWindowViewModel.Dispose();
         RemoveProcessFinishedFiles();
     }
 
@@ -213,8 +225,17 @@ internal partial class MainWindowViewModel : ObservableObject, IDisposable
         // {
         //     _modelManager.Debug(item.IsChecked.ToString());
         // }
-        _modelManager.ParallelComp.Cancel();
-        _modelManager.Debug("キャンセル");
+
+        // _modelManager.ParallelComp.Cancel();
+        // _modelManager.Debug("キャンセル");
+
+        // _modelManager.Debug("新しいウィンドウ");
+        // var progressWindowViewModel = new ProgressWindowViewModel(_modelManager);
+        // var win = new ProgressWindow()
+        // {
+        //     DataContext = progressWindowViewModel
+        // };
+        // win.ShowDialog();
     }
 
     // 以下xamlからBindingできなかったイベントハンドラ等
