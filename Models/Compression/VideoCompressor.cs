@@ -18,8 +18,8 @@ internal class VideoCompressor
         using Process process = new() { StartInfo = processInfo };
         process.Start();
         // proces.WaitForExit();
-        while(false == process.HasExited 
-        && false == cancelToken.IsCancellationRequested) {}
+        while (false == process.HasExited
+        && false == cancelToken.IsCancellationRequested) { }
     }
 
     private static string MakeArguments(MovieInfo movieInfo, string outputPath, CompressionParameter parameter)
@@ -27,41 +27,51 @@ internal class VideoCompressor
         List<string> argList = [];
         argList.Add($"-y -i {movieInfo.FilePath}");
 
-        if(0 < parameter.ScaleWidth && 0 < parameter.ScaleHeight)
+        if (0 < parameter.ScaleWidth && 0 < parameter.ScaleHeight)
         {
             argList.Add($"-vf scale={parameter.ScaleWidth}:{parameter.ScaleHeight}");
         }
-        else if(0 >= parameter.ScaleWidth && 0 < parameter.ScaleHeight)
+        else if (0 >= parameter.ScaleWidth && 0 < parameter.ScaleHeight)
         {
             // アスペクト比からWidthを自動計算
-            int autoWidth = parameter.ScaleHeight * movieInfo.AspectRatio.Width / movieInfo.AspectRatio.Height;
+            int autoWidth = 0;
+            // 0除算回避
+            if (0 != movieInfo.AspectRatio.Height)
+            {
+                autoWidth = parameter.ScaleHeight * movieInfo.AspectRatio.Width / movieInfo.AspectRatio.Height;
+            }
             // 解像度は偶数にする必要がある。
-            if(0 != autoWidth % 2)
+            if (0 != autoWidth % 2)
             {
                 autoWidth--;
             }
             argList.Add($"-vf scale={autoWidth}:{parameter.ScaleHeight}");
         }
-        else if(0 < parameter.ScaleWidth && 0 >= parameter.ScaleHeight)
+        else if (0 < parameter.ScaleWidth && 0 >= parameter.ScaleHeight)
         {
             // アスペクト比からHeightを自動計算
-            int autoHeight = parameter.ScaleWidth * movieInfo.AspectRatio.Height / movieInfo.AspectRatio.Width;
+            int autoHeight = 0;
+            // 0除算回避
+            if (0 != movieInfo.AspectRatio.Width)
+            {
+                autoHeight = parameter.ScaleWidth * movieInfo.AspectRatio.Height / movieInfo.AspectRatio.Width;
+            }
             // 解像度は偶数にする必要がある。
-            if(0 != autoHeight % 2)
+            if (0 != autoHeight % 2)
             {
                 autoHeight--;
             }
             argList.Add($"-vf scale={parameter.ScaleWidth}:{autoHeight}");
         }
-        if(0 < parameter.FrameRate)
+        if (0 < parameter.FrameRate)
         {
             argList.Add($"-r {parameter.FrameRate}");
         }
-        if(false == string.IsNullOrWhiteSpace(parameter.VideoCodec))
+        if (false == string.IsNullOrWhiteSpace(parameter.VideoCodec))
         {
             argList.Add($"-c:v {parameter.VideoCodec}");
         }
-        if(parameter.IsAudioEraced)
+        if (parameter.IsAudioEraced)
         {
             argList.Add("-an");
         }

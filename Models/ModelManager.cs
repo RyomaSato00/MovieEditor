@@ -1,4 +1,5 @@
 
+using MovieEditor.Models.AudioExtraction;
 using MovieEditor.Models.Compression;
 using MovieEditor.Models.Json;
 
@@ -8,19 +9,20 @@ internal class ModelManager : IDisposable
 {
     private readonly LogSender _logSender;
     private readonly JsonManager _jsonManager;
+    private readonly ParallelCompressionRunner _parallelComp;
+    private readonly ParallelExtractionRunner _parallelExtract;
 
     public ILogServer LogServer => _logSender;
     public ISettingReferable SettingReferable => _jsonManager;
-
-    // 仮
-    public ParallelCompressionRunner ParallelComp { get; }
+    public ParallelCompressionRunner ParallelComp => _parallelComp;
+    public ParallelExtractionRunner ParallelExtract => _parallelExtract;
 
     public ModelManager(Action<string> OnSendLogEventHandler)
     {
         _logSender = new LogSender(OnSendLogEventHandler);
         _jsonManager = new JsonManager(_logSender);
-
-        ParallelComp = new ParallelCompressionRunner(_logSender);
+        _parallelComp = new ParallelCompressionRunner(_logSender);
+        _parallelExtract = new ParallelExtractionRunner(_logSender);
     }
 
     public void Test()
@@ -39,7 +41,8 @@ internal class ModelManager : IDisposable
 
     public void Dispose()
     {
-        ParallelComp.Dispose();
+        _parallelComp.Dispose();
+        _parallelExtract.Dispose();
         _jsonManager.SaveMainSettings();
     }
 }

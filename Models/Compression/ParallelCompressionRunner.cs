@@ -1,10 +1,9 @@
-using System.Diagnostics;
 using System.IO;
 using MovieEditor.Models.Information;
 
 namespace MovieEditor.Models.Compression;
 
-internal class ParallelCompressionRunner(ILogSendable logger) : IDisposable
+internal class ParallelCompressionRunner(ILogSendable logger) : IDisposable, IAnyProcess
 {
     private static readonly object ParallelLock = new();
     private readonly ILogSendable _logger = logger;
@@ -25,8 +24,7 @@ internal class ParallelCompressionRunner(ILogSendable logger) : IDisposable
         _cancelable?.Cancel();
         _cancelable = new CancellationTokenSource();
 
-        Stopwatch time = new();
-        time.Start();
+        var startTime = DateTime.Now;
         await Task.Run(() =>
         {
             try
@@ -62,8 +60,8 @@ internal class ParallelCompressionRunner(ILogSendable logger) : IDisposable
         },
         _cancelable.Token);
 
-        time.Stop();
-        _logger.SendLog($"完了:{time.ElapsedMilliseconds}ms");
+        var processTime = DateTime.Now - startTime;
+        _logger.SendLog($"完了:{(long)processTime.TotalMilliseconds}ms");
     }
 
     public void Cancel()

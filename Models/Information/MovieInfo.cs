@@ -8,6 +8,7 @@ internal record MovieInfo
     public static readonly string[] MovieFileExtension =
     [
         ".mp4",
+        ".MOV"
     ];
 
     public string FilePath { get; init; } = string.Empty;

@@ -70,7 +70,7 @@ internal partial class MainWindowViewModel : ObservableObject, IDisposable
         // 非同期でファイル情報を取得する
         await Task.Run(() =>
         {
-            foreach(var filePath in filePaths)
+            foreach (var filePath in filePaths)
             {
                 // すでに同一のファイルがある場合は追加しない（MovieInfoListへの変更はないため、非同期でも参照可）
                 if (MovieInfoList.Any(item => item.Info.FilePath == filePath)) continue;
@@ -87,7 +87,7 @@ internal partial class MainWindowViewModel : ObservableObject, IDisposable
                 {
                     _modelManager.SendLogFromAsync(e.Message, LogLevel.Warning);
                 }
-                catch(FFMpegCore.Exceptions.FFMpegException)
+                catch (FFMpegCore.Exceptions.FFMpegException)
                 {
                     _modelManager.SendLogFromAsync($"ファイルが壊れている可能性があります。ファイルを読み込めません：{filePath}", LogLevel.Warning);
                 }
@@ -99,7 +99,7 @@ internal partial class MainWindowViewModel : ObservableObject, IDisposable
         });
 
         // MovieInfoListへの変更はメインスレッドで行う必要がある
-        foreach(var info in infos)
+        foreach (var info in infos)
         {
             MovieInfoList.Add(new SourceListItemElement(info));
         }
@@ -114,9 +114,76 @@ internal partial class MainWindowViewModel : ObservableObject, IDisposable
         for (var index = MovieInfoList.Count - 1; index >= 0; index--)
         {
             // チェックが付いている項目のみ削除する
-            if(false == MovieInfoList[index].IsChecked) continue;
+            if (false == MovieInfoList[index].IsChecked) continue;
             MovieInfoList.RemoveAt(index);
         }
+    }
+
+    /// <summary>
+    /// 動画圧縮処理を非同期実行する
+    /// </summary>
+    /// <returns></returns>
+    private async Task RunCompression()
+    {
+        CompressionParameter parameter = new()
+        {
+            ScaleWidth = OutputWidth,
+            ScaleHeight = OutputHeight,
+            FrameRate = OutputFrameRate,
+            VideoCodec = OutputCodec,
+            IsAudioEraced = IsAudioEraced
+        };
+        try
+        {
+            await _modelManager.ParallelComp.Run
+            (
+                // チェックを付けたものだけ処理する
+                MovieInfoList.Where(item => item.IsChecked).Select(item => item.Info).ToArray(),
+                OutDirectory,
+                OutputNameTag,
+                parameter
+            );
+        }
+        catch (Exception e)
+        {
+            _modelManager.SendLog($"想定外のエラー：{e}", LogLevel.Error);
+        }
+    }
+
+    /// <summary>
+    /// 音声抽出処理を非同期実行する
+    /// </summary>
+    /// <returns></returns>
+    private async Task RunExtraction()
+    {
+        try
+        {
+            await _modelManager.ParallelExtract.Run
+            (
+                // チェックを付けたものだけ処理する
+                MovieInfoList.Where(item => item.IsChecked).Select(item => item.Info).ToArray(),
+                OutDirectory,
+                OutputNameTag
+            );
+        }
+        catch (Exception e)
+        {
+            _modelManager.SendLog($"想定外のエラー：{e}", LogLevel.Error);
+        }
+    }
+
+    /// <summary>
+    /// 進捗表示用のサブウィンドウを表示する
+    /// </summary>
+    /// <param name="process"></param>
+    /// <returns></returns>
+    private static ProgressWindowViewModel CreateProgressWindow(IAnyProcess process)
+    {
+        var progressWindow = new ProgressWindow();
+        var progressWindowViewModel = new ProgressWindowViewModel(process, progressWindow.Close);
+        progressWindow.DataContext = progressWindowViewModel;
+        progressWindow.Show();
+        return progressWindowViewModel;
     }
 
     [NotifyCanExecuteChangedFor(nameof(RunCommand))]
@@ -171,39 +238,29 @@ internal partial class MainWindowViewModel : ObservableObject, IDisposable
         }
     }
 
-    [RelayCommand(CanExecute = nameof(CanRun))] private async Task Run()
+    [RelayCommand(CanExecute = nameof(CanRun))]
+    private async Task Run()
     {
-        _modelManager.SendLog("圧縮処理開始");
-
-        var progressWindow = new ProgressWindow();
-        var progressWindowViewModel = new ProgressWindowViewModel(_modelManager, progressWindow.Close);
-        progressWindow.DataContext = progressWindowViewModel;
-        // win.ShowDialog();
-        progressWindow.Show();
-
-        await RunCompression();
-        progressWindowViewModel.Dispose();
-        RemoveProcessFinishedFiles();
-    }
-
-    private async Task RunCompression()
-    {
-        CompressionParameter parameter = new()
+        ProgressWindowViewModel? viewModel = null;
+        switch ((ProcessModeEnum)ProcessMode)
         {
-            ScaleWidth = OutputWidth,
-            ScaleHeight = OutputHeight,
-            FrameRate = OutputFrameRate,
-            VideoCodec = OutputCodec,
-            IsAudioEraced = IsAudioEraced
-        };
-        await _modelManager.ParallelComp.Run
-        (
-            // チェックを付けたものだけ処理する
-            MovieInfoList.Where(item => item.IsChecked).Select(item => item.Info).ToArray(),
-            OutDirectory,
-            OutputNameTag,
-            parameter
-        );
+            case ProcessModeEnum.VideoCompression:
+                _modelManager.SendLog("圧縮処理開始");
+                viewModel = CreateProgressWindow(_modelManager.ParallelComp);
+                await RunCompression();
+                break;
+
+            case ProcessModeEnum.AudioExtraction:
+                _modelManager.SendLog("音声抽出処理開始");
+                viewModel = CreateProgressWindow(_modelManager.ParallelExtract);
+                await RunExtraction();
+                break;
+
+            default:
+                break;
+        }
+        viewModel?.Dispose();
+        RemoveProcessFinishedFiles();
     }
 
     private bool CanRun()
@@ -219,8 +276,11 @@ internal partial class MainWindowViewModel : ObservableObject, IDisposable
     }
 
     [RelayCommand]
-    private void Test2()
+    private async Task Test2()
     {
+        _modelManager.Debug("音声抽出");
+        await RunExtraction();
+        _modelManager.Debug("音声抽出完了");
         // foreach (var item in MovieInfoList)
         // {
         //     _modelManager.Debug(item.IsChecked.ToString());
@@ -260,7 +320,7 @@ internal partial class MainWindowViewModel : ObservableObject, IDisposable
         {
             Process.Start(new ProcessStartInfo(item.Info.FilePath) { UseShellExecute = true });
         }
-        catch(Exception exception)
+        catch (Exception exception)
         {
             _modelManager.SendLog(exception.Message, LogLevel.Error);
         }
@@ -282,7 +342,7 @@ internal partial class MainWindowViewModel : ObservableObject, IDisposable
 
     public void OutDirectory_OnDrop(string directoryPath)
     {
-        if(false == Directory.Exists(directoryPath)) return;
+        if (false == Directory.Exists(directoryPath)) return;
         OutDirectory = directoryPath;
     }
 }

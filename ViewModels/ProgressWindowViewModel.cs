@@ -6,21 +6,21 @@ namespace MovieEditor.ViewModels;
 
 internal partial class ProgressWindowViewModel : ObservableObject, IDisposable
 {
-    private readonly ModelManager _modelManager;
+    private readonly IAnyProcess _anyProcess;
     private readonly Action _windowClose;
 
-    public ProgressWindowViewModel(ModelManager model, Action windowClose)
+    public ProgressWindowViewModel(IAnyProcess process, Action windowClose)
     {
-        _modelManager = model;
+        _anyProcess = process;
         _windowClose = windowClose;
         // 処理進捗更新時処理
-        _modelManager.ParallelComp.OnUpdateProgress += OnUpdateProgress;
+        _anyProcess.OnUpdateProgress += OnUpdateProgress;
     }
 
     public void Dispose()
     {
         // このクラスと紐づくイベントを削除する
-        _modelManager.ParallelComp.OnUpdateProgress -= OnUpdateProgress;
+        _anyProcess.OnUpdateProgress -= OnUpdateProgress;
         // ウィンドウを閉じる
         _windowClose.Invoke();
     }
@@ -38,7 +38,7 @@ internal partial class ProgressWindowViewModel : ObservableObject, IDisposable
     [ObservableProperty] private float _progressRate = 0;
     [RelayCommand] private void Cancel()
     {
-        _modelManager.ParallelComp.Cancel();
+        _anyProcess.Cancel();
         Dispose();
     }
 
