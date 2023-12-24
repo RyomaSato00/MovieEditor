@@ -331,6 +331,18 @@ internal partial class MainWindowViewModel : ObservableObject, IDisposable
         }
     }
 
+    [RelayCommand]
+    private void RemoveItem(string filePath)
+    {
+        for(var index = 0; index < MovieInfoList.Count; index++)
+        {
+            if(filePath != MovieInfoList[index].Info.FilePath) continue;
+            // 指定のファイルパスの項目を削除する
+            MovieInfoList.RemoveAt(index);
+            return;
+        }
+    }
+
     [RelayCommand] private void Test()
     {
 
@@ -354,7 +366,6 @@ internal partial class MainWindowViewModel : ObservableObject, IDisposable
     /// </summary>
     public void SourceList_OnItemDoubleClicked(SourceListItemElement item)
     {
-        _modelManager.Debug($"{item.Info.FileName}を開きます");
         try
         {
             Process.Start(new ProcessStartInfo(item.Info.FilePath) { UseShellExecute = true });

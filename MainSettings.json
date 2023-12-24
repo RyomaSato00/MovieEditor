@@ -1,11 +1,11 @@
 {
-  "OutputFolder": "C:\\Users\\Ryoma\\Downloads",
+  "OutputFolder": "C:\\Users\\Ryoma\\Downloads\\圧縮後",
   "AttachedNameTag": "cmp",
   "ProcessMode": 0,
   "ScaleWidth": -1,
   "ScaleHeight": -1,
   "FrameRate": -1.0,
-  "IsAudioEraced": true,
+  "IsAudioEraced": false,
   "Codec": " hevc",
   "Format": "mp4"
 }
