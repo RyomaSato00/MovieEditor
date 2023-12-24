@@ -1,6 +1,7 @@
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
+using System.Reactive.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -11,6 +12,9 @@ using MovieEditor.Models.Compression;
 using MovieEditor.Models.Information;
 using MovieEditor.Models.Json;
 using MovieEditor.Views;
+using Reactive.Bindings;
+using Reactive.Bindings.Disposables;
+using Reactive.Bindings.Extensions;
 
 namespace MovieEditor.ViewModels;
 
@@ -18,7 +22,17 @@ internal partial class MainWindowViewModel : ObservableObject, IDisposable
 {
     private readonly DialogHandler _dialogHandler = new();
     private readonly ModelManager _modelManager;
+    /// <summary> Reactive Propertyの後始末用 </summary>
+    private readonly CompositeDisposable _disposables = new();
 
+    /// <summary> Runコマンドの実行可否 </summary>
+    private readonly ReactiveProperty<bool> _isRunnable = new();
+
+    /// <summary> SourceListの見守り用ReactiveProperty </summary>
+    private readonly ReadOnlyReactiveCollection<SourceListItemElement> _reactiveSourceList;
+
+    /// <summary> ReactivePropertyに依存可能なRunコマンド </summary>
+    public ReactiveCommand RunCommand { get; }
 
     public MainWindowViewModel()
     {
@@ -26,6 +40,51 @@ internal partial class MainWindowViewModel : ObservableObject, IDisposable
         ((string message) =>
         {
             LogHistory = message;
+        });
+
+        _reactiveSourceList = MovieInfoList.ToReadOnlyReactiveCollection();
+
+        _reactiveSourceList
+            // SourceListの各要素の中身のプロパティ(IsChecked)変更時に呼ばれるイベント
+            .ObserveElementPropertyChanged()
+            .Subscribe(args =>
+            {
+                var checkCount = MovieInfoList.Where(item => item.IsChecked).Count();
+                // すべてチェックなしならば実行不可にする
+                _isRunnable.Value = checkCount > 0;
+            })
+            .AddTo(_disposables);
+
+        _reactiveSourceList
+            // SourceListの要素変更時に呼ばれるイベント
+            .CollectionChangedAsObservable()
+            .Subscribe(args =>
+            {
+                // SourceListに要素が1つもないときは実行不可にする
+                if (false == MovieInfoList.Any()) _isRunnable.Value = false;
+                // SourceListに要素が1つ以上あるとき
+                else
+                {
+                    var checkCount = MovieInfoList.Where(item => item.IsChecked).Count();
+                    // すべてチェックなしならば実行不可にする
+                    _isRunnable.Value = checkCount > 0;
+                }
+            })
+            .AddTo(_disposables);
+
+        // isRunnableがtrueのときのみ実行可能なコマンド
+        RunCommand = _isRunnable.ToReactiveCommand();
+
+        // コマンド実行内容設定
+        RunCommand.Subscribe(async () =>
+        {
+            // 処理実行中はコマンド実行不可（ボタンを押せない）にする
+            _isRunnable.Value = false;
+            await Run();
+            // 処理実行終了のため、実行可能（ボタンを押せる）に戻す
+            _isRunnable.Value = true;
+            // 処理済ファイルをSourceListから消す（isRunnableの変更可能性あり）
+            RemoveProcessFinishedFiles();
         });
 
         // 設定値反映
@@ -58,6 +117,8 @@ internal partial class MainWindowViewModel : ObservableObject, IDisposable
         _modelManager.SettingReferable.MainSettings_.IsAudioEraced = IsAudioEraced;
         _modelManager.SettingReferable.MainSettings_.Format = OutputFormat;
 
+        // ReactivePropertyのSubscribeを解除する
+        _disposables.Dispose();
         _modelManager.Dispose();
     }
 
@@ -65,7 +126,7 @@ internal partial class MainWindowViewModel : ObservableObject, IDisposable
     /// 複数のファイルパスをもとに動画ファイル情報をMovieInfoListに反映する
     /// </summary>
     /// <param name="filePaths"></param>
-    private async void GiveSourceFiles(string[] filePaths)
+    private async Task GiveSourceFiles(string[] filePaths)
     {
         // ファイル情報格納用
         List<MovieInfo> infos = [];
@@ -118,6 +179,35 @@ internal partial class MainWindowViewModel : ObservableObject, IDisposable
             // チェックが付いている項目のみ削除する
             if (false == MovieInfoList[index].IsChecked) continue;
             MovieInfoList.RemoveAt(index);
+        }
+    }
+
+    /// <summary>
+    /// 指定のプロセスを実行する
+    /// </summary>
+    /// <returns></returns>
+    private async Task Run()
+    {
+        switch ((ProcessModeEnum)ProcessMode)
+        {
+            case ProcessModeEnum.VideoCompression:
+                _modelManager.SendLog("圧縮処理開始");
+                using(var viewModel = CreateProgressWindow(_modelManager.ParallelComp))
+                {
+                    await RunCompression();
+                }
+                break;
+
+            case ProcessModeEnum.AudioExtraction:
+                _modelManager.SendLog("音声抽出処理開始");
+                using(var viewModel = CreateProgressWindow(_modelManager.ParallelExtract))
+                {
+                    await RunExtraction();
+                }
+                break;
+
+            default:
+                return;
         }
     }
 
@@ -189,8 +279,7 @@ internal partial class MainWindowViewModel : ObservableObject, IDisposable
         return progressWindowViewModel;
     }
 
-    [ObservableProperty] 
-    [NotifyCanExecuteChangedFor(nameof(RunCommand))]
+    [ObservableProperty]
     private ObservableCollection<SourceListItemElement> _movieInfoList = [];
 
     [ObservableProperty] private bool _isAllChecked = true;
@@ -213,13 +302,14 @@ internal partial class MainWindowViewModel : ObservableObject, IDisposable
     [ObservableProperty] private string _logHistory = string.Empty;
 
     [RelayCommand]
-    private void ReferSourceFiles()
+    private async Task ReferSourceFiles()
     {
         string[]? filePaths = _dialogHandler.GetFilesFromDialog();
         if (null == filePaths) return;
 
+        // 非同期でファイルを読み込む
+        await GiveSourceFiles(filePaths);
         IsAllChecked = true;
-        GiveSourceFiles(filePaths);
     }
 
     [RelayCommand]
@@ -237,39 +327,6 @@ internal partial class MainWindowViewModel : ObservableObject, IDisposable
             OutDirectory = directoryPath;
         }
     }
-
-    [RelayCommand(CanExecute = nameof(CanRun))]
-    private async Task Run()
-    {
-        ProgressWindowViewModel? viewModel = null;
-        switch ((ProcessModeEnum)ProcessMode)
-        {
-            case ProcessModeEnum.VideoCompression:
-                _modelManager.SendLog("圧縮処理開始");
-                viewModel = CreateProgressWindow(_modelManager.ParallelComp);
-                await RunCompression();
-                break;
-
-            case ProcessModeEnum.AudioExtraction:
-                _modelManager.SendLog("音声抽出処理開始");
-                viewModel = CreateProgressWindow(_modelManager.ParallelExtract);
-                await RunExtraction();
-                break;
-
-            default:
-                return;
-        }
-        viewModel?.Dispose();
-        RemoveProcessFinishedFiles();
-    }
-
-    private bool CanRun()
-    {
-        _modelManager.Debug("can_run");
-        if(0 < MovieInfoList.Count) return true;
-        else return false;
-    }
-
 
     public void Test()
     {
@@ -305,10 +362,11 @@ internal partial class MainWindowViewModel : ObservableObject, IDisposable
     /// ListViewのDropイベントハンドラ
     /// </summary>
     /// <param name="e"></param>
-    public void SourceList_OnDrop(string[] dropFiles)
+    public async Task SourceList_OnDrop(string[] dropFiles)
     {
+        // 非同期でファイルを読み込む
+        await GiveSourceFiles(dropFiles);
         IsAllChecked = true;
-        GiveSourceFiles(dropFiles);
     }
 
     /// <summary>

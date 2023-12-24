@@ -5,7 +5,7 @@
   "ScaleWidth": -1,
   "ScaleHeight": -1,
   "FrameRate": -1.0,
-  "IsAudioEraced": false,
+  "IsAudioEraced": true,
   "Codec": " hevc",
   "Format": "mp4"
 }
