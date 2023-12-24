@@ -25,12 +25,6 @@ internal class ModelManager : IDisposable
         _parallelExtract = new ParallelExtractionRunner(_logSender);
     }
 
-    public void Test()
-    {
-        _logSender.SendLog("テスト１");
-        _logSender.SendLog("テスト２");
-    }
-
     public void SendLog(string message, LogLevel level = LogLevel.Info) => _logSender.SendLog(message, level);
     public void SendLogFromAsync(string message, LogLevel level) => _logSender.SendLogFromAsync(message, level);
 

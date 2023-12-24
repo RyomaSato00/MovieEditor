@@ -97,11 +97,6 @@ internal partial class MainWindowViewModel : ObservableObject, IDisposable
         OutputCodec = _modelManager.SettingReferable.MainSettings_.Codec;
         IsAudioEraced = _modelManager.SettingReferable.MainSettings_.IsAudioEraced;
         OutputFormat = _modelManager.SettingReferable.MainSettings_.Format;
-
-        MovieInfoList.Add(new SourceListItemElement(MovieInfo.GetMovieInfo(@"C:\OriginalProgramFiles\WPF\MovieEditor\SampleVideo\AGDRec_20230901_182924.mp4")));
-        MovieInfoList.Add(new SourceListItemElement(MovieInfo.GetMovieInfo(@"C:\OriginalProgramFiles\WPF\MovieEditor\SampleVideo\AGDRec_20231202_173923.mp4")));
-        MovieInfoList.Add(new SourceListItemElement(MovieInfo.GetMovieInfo(@"C:\OriginalProgramFiles\WPF\MovieEditor\SampleVideo\AGDRec_20231128_220111.mp4")));
-        MovieInfoList.Add(new SourceListItemElement(MovieInfo.GetMovieInfo(@"C:\OriginalProgramFiles\WPF\MovieEditor\SampleVideo\AGDRec_20231115_215814.mp4")));
     }
 
     public void Dispose()
@@ -328,32 +323,9 @@ internal partial class MainWindowViewModel : ObservableObject, IDisposable
         }
     }
 
-    public void Test()
+    [RelayCommand] private void Test()
     {
-        _modelManager.Test();
-    }
 
-    [RelayCommand]
-    private async Task Test2()
-    {
-        _modelManager.Debug("音声抽出");
-        await RunExtraction();
-        _modelManager.Debug("音声抽出完了");
-        // foreach (var item in MovieInfoList)
-        // {
-        //     _modelManager.Debug(item.IsChecked.ToString());
-        // }
-
-        // _modelManager.ParallelComp.Cancel();
-        // _modelManager.Debug("キャンセル");
-
-        // _modelManager.Debug("新しいウィンドウ");
-        // var progressWindowViewModel = new ProgressWindowViewModel(_modelManager);
-        // var win = new ProgressWindow()
-        // {
-        //     DataContext = progressWindowViewModel
-        // };
-        // win.ShowDialog();
     }
 
     // 以下xamlからBindingできなかったイベントハンドラ等

@@ -11,10 +11,10 @@
         ui:WindowHelper.UseModernWindowStyle="True">
 
     <ui:SimpleStackPanel Margin="12" Spacing="24">
-		<ui:SimpleStackPanel Orientation="Horizontal">
-            <Button Margin="6" Content="テスト" Command="{Binding Test2Command}" />
-			<Button Margin="6" Content="ファイルを追加" Command="{Binding ReferSourceFilesCommand}" />
-			<Button Margin="6" Content="クリア" Command="{Binding ClearSourceFilesCommand}" />
+		<ui:SimpleStackPanel Orientation="Horizontal" Spacing="10" HorizontalAlignment="Right">
+            <!-- <Button Margin="6" Content="テスト" Command="{Binding Test2Command}" /> -->
+			<Button Content="ファイルを追加" Command="{Binding ReferSourceFilesCommand}" />
+			<Button Content="クリア" Command="{Binding ClearSourceFilesCommand}" />
 		</ui:SimpleStackPanel>
 		<ListView Name="SourceList" Margin="10" Height="300" Width="750"
             ScrollViewer.VerticalScrollBarVisibility="Visible"
@@ -131,7 +131,9 @@
                 </ui:SimpleStackPanel>
             </TabItem>
             <TabItem Header="音声抽出">
-                <Button />
+                <ui:SimpleStackPanel HorizontalAlignment="Center">
+                    <Label Content="動画ファイルから音声のみを抽出します。コーデックはAACです。" VerticalContentAlignment="Center" />
+                </ui:SimpleStackPanel>
             </TabItem>
         </TabControl>
         <ui:SimpleStackPanel Orientation="Horizontal" Spacing="20">
