@@ -46,7 +46,6 @@ internal partial class ProgressWindowViewModel : ObservableObject, IDisposable
     [RelayCommand] private void Cancel()
     {
         _anyProcess.Cancel();
-        Dispose();
     }
 
 }

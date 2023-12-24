@@ -80,9 +80,11 @@ internal partial class MainWindowViewModel : ObservableObject, IDisposable
         {
             // 処理実行中はコマンド実行不可（ボタンを押せない）にする
             _isRunnable.Value = false;
-            await Run();
+            var isCanceled = await Run();
             // 処理実行終了のため、実行可能（ボタンを押せる）に戻す
             _isRunnable.Value = true;
+            // キャンセルされたならSourceListは変更しない
+            if(isCanceled) return;
             // 処理済ファイルをSourceListから消す（isRunnableの変更可能性あり）
             RemoveProcessFinishedFiles();
         });
@@ -180,16 +182,17 @@ internal partial class MainWindowViewModel : ObservableObject, IDisposable
     /// <summary>
     /// 指定のプロセスを実行する
     /// </summary>
-    /// <returns></returns>
-    private async Task Run()
+    /// <returns>キャンセルされたならtrue</returns>
+    private async Task<bool> Run()
     {
+        var isCanceled = true;
         switch ((ProcessModeEnum)ProcessMode)
         {
             case ProcessModeEnum.VideoCompression:
                 _modelManager.SendLog("圧縮処理開始");
                 using(var viewModel = CreateProgressWindow(_modelManager.ParallelComp))
                 {
-                    await RunCompression();
+                    isCanceled = await RunCompression();
                 }
                 break;
 
@@ -197,20 +200,21 @@ internal partial class MainWindowViewModel : ObservableObject, IDisposable
                 _modelManager.SendLog("音声抽出処理開始");
                 using(var viewModel = CreateProgressWindow(_modelManager.ParallelExtract))
                 {
-                    await RunExtraction();
+                    isCanceled = await RunExtraction();
                 }
                 break;
 
             default:
-                return;
+                return true;
         }
+        return isCanceled;
     }
 
     /// <summary>
     /// 動画圧縮処理を非同期実行する
     /// </summary>
-    /// <returns></returns>
-    private async Task RunCompression()
+    /// <returns>キャンセルされたならtrue</returns>
+    private async Task<bool> RunCompression()
     {
         CompressionParameter parameter = new()
         {
@@ -223,7 +227,7 @@ internal partial class MainWindowViewModel : ObservableObject, IDisposable
         };
         try
         {
-            await _modelManager.ParallelComp.Run
+            var isCanceled = await _modelManager.ParallelComp.Run
             (
                 // チェックを付けたものだけ処理する
                 MovieInfoList.Where(item => item.IsChecked).Select(item => item.Info).ToArray(),
@@ -231,32 +235,36 @@ internal partial class MainWindowViewModel : ObservableObject, IDisposable
                 OutputNameTag,
                 parameter
             );
+            return isCanceled;
         }
         catch (Exception e)
         {
             _modelManager.SendLog($"想定外のエラー：{e}", LogLevel.Error);
+            return true;
         }
     }
 
     /// <summary>
     /// 音声抽出処理を非同期実行する
     /// </summary>
-    /// <returns></returns>
-    private async Task RunExtraction()
+    /// <returns>キャンセルされたならtrue</returns>
+    private async Task<bool> RunExtraction()
     {
         try
         {
-            await _modelManager.ParallelExtract.Run
+            var isCanceled = await _modelManager.ParallelExtract.Run
             (
                 // チェックを付けたものだけ処理する
                 MovieInfoList.Where(item => item.IsChecked).Select(item => item.Info).ToArray(),
                 OutDirectory,
                 OutputNameTag
             );
+            return isCanceled;
         }
         catch (Exception e)
         {
             _modelManager.SendLog($"想定外のエラー：{e}", LogLevel.Error);
+            return true;
         }
     }
 

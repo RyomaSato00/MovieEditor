@@ -12,7 +12,7 @@ internal class ParallelCompressionRunner(ILogSendable logger) : IDisposable, IAn
     public event Action<int>? OnStartProcess = null;
     public event Action<int>? OnUpdateProgress = null;
 
-    public async Task Run
+    public async Task<bool> Run
     (
         MovieInfo[] sources,
         string outputFolder,
@@ -64,6 +64,7 @@ internal class ParallelCompressionRunner(ILogSendable logger) : IDisposable, IAn
 
         var processTime = DateTime.Now - startTime;
         _logger.SendLog($"完了:{(long)processTime.TotalMilliseconds}ms");
+        return _cancelable.Token.IsCancellationRequested;
     }
 
     public void Cancel()

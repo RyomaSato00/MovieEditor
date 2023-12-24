@@ -8,7 +8,10 @@ internal record MovieInfo
     public static readonly string[] MovieFileExtension =
     [
         ".mp4",
-        ".MOV"
+        ".MOV",
+        ".agm",
+        ".avi",
+        ".wmv"
     ];
 
     public string FilePath { get; init; } = string.Empty;
@@ -24,7 +27,7 @@ internal record MovieInfo
     public string FileSizeString => $"{FileSize} kb";
     public string FormattedDuration => Duration.ToString(@"hh\:mm\:ss\.ff");
     public string ScaleString => $"{Width} : {Height} ({AspectRatio.Width}:{AspectRatio.Height})";
-    public string FrameRateString => $"{FrameRate} fps";
+    public string FrameRateString => $"{FrameRate:0.##} fps";
     public string VideoBitRateString => $"{VideoBitRate} kbps";
 
     public static MovieInfo GetMovieInfo(string filePath)

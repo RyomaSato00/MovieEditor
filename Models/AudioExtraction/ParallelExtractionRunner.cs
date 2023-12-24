@@ -13,7 +13,7 @@ internal class ParallelExtractionRunner(ILogSendable logger) : IDisposable, IAny
     public event Action<int>? OnStartProcess = null;
     public event Action<int>? OnUpdateProgress = null;
 
-    public async Task Run(MovieInfo[] sources, string outputFolder, string attachedNameTag)
+    public async Task<bool> Run(MovieInfo[] sources, string outputFolder, string attachedNameTag)
     {
         int finishedCount = 0;
         int allCount = sources.Length;
@@ -58,6 +58,7 @@ internal class ParallelExtractionRunner(ILogSendable logger) : IDisposable, IAny
 
         var processTime = DateTime.Now - startTime;
         _logger.SendLog($"完了:{(long)processTime.TotalMilliseconds}ms");
+        return _cancelable.Token.IsCancellationRequested;
     }
 
     public void Cancel()
