@@ -25,7 +25,7 @@ internal class VideoCompressor
     private static string MakeArguments(MovieInfo movieInfo, string outputPath, CompressionParameter parameter)
     {
         List<string> argList = [];
-        argList.Add($"-y -i {movieInfo.FilePath}");
+        argList.Add($"-y -i \"{movieInfo.FilePath}\"");
 
         if (0 < parameter.ScaleWidth && 0 < parameter.ScaleHeight)
         {
@@ -76,7 +76,7 @@ internal class VideoCompressor
             argList.Add("-an");
         }
 
-        argList.Add($"{outputPath}");
+        argList.Add($"\"{outputPath}\"");
 
         return string.Join(" ", argList);
     }

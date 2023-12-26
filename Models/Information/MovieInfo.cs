@@ -8,6 +8,8 @@ internal record MovieInfo
     public static readonly string[] MovieFileExtension =
     [
         ".mp4",
+        ".MP4",
+        ".mov",
         ".MOV",
         ".agm",
         ".avi",

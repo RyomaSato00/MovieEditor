@@ -24,8 +24,8 @@ internal class AudioExtractor
     private static string MakeArguments(MovieInfo movieInfo, string outputPath)
     {
         List<string> argList = [];
-        argList.Add($"-y -i {movieInfo.FilePath}");
-        argList.Add($"-vn -acodec aac {outputPath}");
+        argList.Add($"-y -i \"{movieInfo.FilePath}\"");
+        argList.Add($"-vn -acodec aac \"{outputPath}\"");
         return string.Join(" ", argList);
     }
 }
