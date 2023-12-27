@@ -1,11 +1,11 @@
 {
-  "OutputFolder": "C:\\Users\\Ryoma\\Downloads\\圧縮後",
+  "OutputFolder": "C:\\Users\\Ryoma\\Downloads\\drive-download-20231226T115112Z-001\\圧縮後",
   "AttachedNameTag": "cmp",
   "ProcessMode": 0,
-  "ScaleWidth": 1024,
-  "ScaleHeight": 576,
-  "FrameRate": -1.0,
-  "IsAudioEraced": false,
+  "ScaleWidth": -608,
+  "ScaleHeight": -1080,
+  "FrameRate": 29.97,
+  "IsAudioEraced": true,
   "Codec": " hevc",
   "Format": "mp4"
 }

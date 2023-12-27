@@ -35,4 +35,4 @@ sysinfo.txt
 Release/
 Debug/
 SampleVideo/
-.json
+*.json
