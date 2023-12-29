@@ -80,13 +80,15 @@ internal partial class MainWindowViewModel : ObservableObject, IDisposable
         {
             // 処理実行中はコマンド実行不可（ボタンを押せない）にする
             _isRunnable.Value = false;
-            var isCanceled = await Run();
+            // チェック付きのファイルリストを取得する
+            var sources = MovieInfoList.Where(item => item.IsChecked).Select(item => item.Info).ToArray();
+            var isCanceled = await Run(sources);
             // 処理実行終了のため、実行可能（ボタンを押せる）に戻す
             _isRunnable.Value = true;
             // キャンセルされたならSourceListは変更しない
             if(isCanceled) return;
             // 処理済ファイルをSourceListから消す（isRunnableの変更可能性あり）
-            RemoveProcessFinishedFiles();
+            RemoveProcessFinishedFiles(sources);
         });
 
         // 設定値反映
@@ -168,13 +170,13 @@ internal partial class MainWindowViewModel : ObservableObject, IDisposable
     /// <summary>
     /// チェックのついた項目をリストから削除する
     /// </summary>
-    private void RemoveProcessFinishedFiles()
+    private void RemoveProcessFinishedFiles(MovieInfo[] sources)
     {
         // 逆順に削除していくことで、その要素をリストから削除しても、残りの要素のインデックスは変化しない
         for (var index = MovieInfoList.Count - 1; index >= 0; index--)
         {
-            // チェックが付いている項目のみ削除する
-            if (false == MovieInfoList[index].IsChecked) continue;
+            // 処理済のファイルのみリストから削除する
+            if(false == sources.Contains(MovieInfoList[index].Info)) continue;
             MovieInfoList.RemoveAt(index);
         }
     }
@@ -183,7 +185,7 @@ internal partial class MainWindowViewModel : ObservableObject, IDisposable
     /// 指定のプロセスを実行する
     /// </summary>
     /// <returns>キャンセルされたならtrue</returns>
-    private async Task<bool> Run()
+    private async Task<bool> Run(MovieInfo[] sources)
     {
         var isCanceled = true;
         switch ((ProcessModeEnum)ProcessMode)
@@ -192,7 +194,7 @@ internal partial class MainWindowViewModel : ObservableObject, IDisposable
                 _modelManager.SendLog("圧縮処理開始");
                 using(var viewModel = CreateProgressWindow(_modelManager.ParallelComp))
                 {
-                    isCanceled = await RunCompression();
+                    isCanceled = await RunCompression(sources);
                 }
                 break;
 
@@ -200,7 +202,7 @@ internal partial class MainWindowViewModel : ObservableObject, IDisposable
                 _modelManager.SendLog("音声抽出処理開始");
                 using(var viewModel = CreateProgressWindow(_modelManager.ParallelExtract))
                 {
-                    isCanceled = await RunExtraction();
+                    isCanceled = await RunExtraction(sources);
                 }
                 break;
 
@@ -214,7 +216,7 @@ internal partial class MainWindowViewModel : ObservableObject, IDisposable
     /// 動画圧縮処理を非同期実行する
     /// </summary>
     /// <returns>キャンセルされたならtrue</returns>
-    private async Task<bool> RunCompression()
+    private async Task<bool> RunCompression(MovieInfo[] sources)
     {
         CompressionParameter parameter = new()
         {
@@ -229,8 +231,7 @@ internal partial class MainWindowViewModel : ObservableObject, IDisposable
         {
             var isCanceled = await _modelManager.ParallelComp.Run
             (
-                // チェックを付けたものだけ処理する
-                MovieInfoList.Where(item => item.IsChecked).Select(item => item.Info).ToArray(),
+                sources,
                 OutDirectory,
                 OutputNameTag,
                 parameter
@@ -248,14 +249,13 @@ internal partial class MainWindowViewModel : ObservableObject, IDisposable
     /// 音声抽出処理を非同期実行する
     /// </summary>
     /// <returns>キャンセルされたならtrue</returns>
-    private async Task<bool> RunExtraction()
+    private async Task<bool> RunExtraction(MovieInfo[] sources)
     {
         try
         {
             var isCanceled = await _modelManager.ParallelExtract.Run
             (
-                // チェックを付けたものだけ処理する
-                MovieInfoList.Where(item => item.IsChecked).Select(item => item.Info).ToArray(),
+                sources,
                 OutDirectory,
                 OutputNameTag
             );

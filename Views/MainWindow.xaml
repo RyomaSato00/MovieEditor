@@ -51,11 +51,12 @@
                     </GridViewColumn>
                     <GridViewColumn Width="250" Header="ファイル名" />
 					<GridViewColumn Width="80" Header="サイズ"/>
-					<GridViewColumn Width="100" Header="再生時間" />
-					<GridViewColumn Width="150" Header="解像度(W : H)" />
 					<GridViewColumn Width="80" Header="フレーム率" />
+					<GridViewColumn Width="150" Header="解像度(W : H)" />
                     <GridViewColumn Width="100" Header="ビットレート" />
-					<GridViewColumn Width="100" Header="コーデック" />
+					<GridViewColumn Width="80" Header="コーデック" />
+                    <!--DataTemplateで定義しているよりもWidthを広くすることで要素が列からはみ出なくなる（？）-->
+					<GridViewColumn Width="120" Header="再生時間" />
                 </GridView>				
 			</ListView.View>
 			<!--上でDefaultListViewItemStyleをBasedOnするとGridViewColumnの中でDisplayMemberBindingにより各要素をBindingすることができない。
@@ -68,11 +69,11 @@
                             <ColumnDefinition Width="50" />
                             <ColumnDefinition Width="250" />
                             <ColumnDefinition Width="80" />
-                            <ColumnDefinition Width="100" />
+                            <ColumnDefinition Width="80" />
                             <ColumnDefinition Width="150" />
-                            <ColumnDefinition Width="80" />
                             <ColumnDefinition Width="100" />
                             <ColumnDefinition Width="80" />
+                            <ColumnDefinition Width="100" />
                         </Grid.ColumnDefinitions>
                         <Button Grid.Column="0" Content="削除"
                             Command="{Binding DataContext.RemoveItemCommand, RelativeSource={RelativeSource AncestorType=ListView}}" 
@@ -80,11 +81,11 @@
                         <CheckBox Grid.Column="1" IsChecked="{Binding IsChecked}" />
                         <TextBlock Grid.Column="2" Text="{Binding Info.FileName}" />
                         <TextBlock Grid.Column="3" Text="{Binding Info.FileSizeString}" />
-                        <TextBlock Grid.Column="4" Text="{Binding Info.FormattedDuration}" />
+                        <TextBlock Grid.Column="4" Text="{Binding Info.FrameRateString}" />
                         <TextBlock Grid.Column="5" Text="{Binding Info.ScaleString}" />
-                        <TextBlock Grid.Column="6" Text="{Binding Info.FrameRateString}" />
-                        <TextBlock Grid.Column="7" Text="{Binding Info.VideoBitRateString}" />
-                        <TextBlock Grid.Column="8" Text="{Binding Info.VideoCodec}" />
+                        <TextBlock Grid.Column="6" Text="{Binding Info.VideoBitRateString}" />
+                        <TextBlock Grid.Column="7" Text="{Binding Info.VideoCodec}" />
+                        <TextBlock Grid.Column="8" Text="{Binding Info.FormattedDuration}" />
                     </Grid>
                 </DataTemplate>
             </ListView.ItemTemplate>
