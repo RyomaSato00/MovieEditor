@@ -14,7 +14,8 @@ internal class LogSender : ILogSendable, ILogServer
 
     public void SendLog(string message, LogLevel level = LogLevel.Info)
     {
-        _logHistory.Add($"[{level}] : {message}");
+        var now = DateTime.Now;
+        _logHistory.Add($"{now.Hour:D2}:{now.Minute:D2}:{now.Second:D2} [{level}] : {message}");
         OnSendLog?.Invoke(string.Join("\r\n", _logHistory));
     }
 

@@ -11,11 +11,16 @@
         ui:WindowHelper.UseModernWindowStyle="True">
 
     <ui:SimpleStackPanel Margin="12" Spacing="24">
-		<ui:SimpleStackPanel Orientation="Horizontal" Spacing="10" HorizontalAlignment="Right">
-            <!-- <Button Margin="6" Content="テスト" Command="{Binding Test2Command}" /> -->
-			<Button Content="ファイルを追加" Command="{Binding ReferSourceFilesCommand}" />
-			<Button Content="クリア" Command="{Binding ClearSourceFilesCommand}" />
-		</ui:SimpleStackPanel>
+        <ui:SimpleStackPanel Orientation="Horizontal" Spacing="400" HorizontalAlignment="Center">
+            <ui:SimpleStackPanel Orientation="Horizontal" HorizontalAlignment="Left">
+                <Label Content="ファイル数：" VerticalContentAlignment="Center" />
+                <Label Content="{Binding MovieInfoList.Count}" VerticalContentAlignment="Center" Width="60" />
+            </ui:SimpleStackPanel>
+            <ui:SimpleStackPanel Orientation="Horizontal" Spacing="10" HorizontalAlignment="Right">
+                <Button Content="ファイルを追加" Command="{Binding ReferSourceFilesCommand}" />
+                <Button Content="クリア" Command="{Binding ClearSourceFilesCommand}" />
+            </ui:SimpleStackPanel>
+        </ui:SimpleStackPanel>
 		<ListView Name="SourceList" Margin="10" Height="300" Width="750"
             ScrollViewer.VerticalScrollBarVisibility="Visible"
             behavior:ListViewDragBehavior.DragOverEffect="True"
