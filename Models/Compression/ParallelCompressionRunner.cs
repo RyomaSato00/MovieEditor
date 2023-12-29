@@ -48,12 +48,12 @@ internal class ParallelCompressionRunner(ILogSendable logger) : IDisposable, IAn
 
                     _cancelable.Token.ThrowIfCancellationRequested();
 
-                    var outputFileInfo = MovieInfo.GetMovieInfo(outputPath);
+                    long fileSize = new FileInfo(outputPath).Length / 1000;
                     lock (ParallelLock)
                     {
                         finishedCount++;
                         OnUpdateProgress?.Invoke(finishedCount);
-                        _logger.SendLog($"{movieInfo.FileName} has finished ({outputFileInfo.FileSizeString}) ({finishedCount}/{allCount})");
+                        _logger.SendLog($"{movieInfo.FileName} has finished ({fileSize} kb) ({finishedCount}/{allCount})");
                     }
                 });
             }
