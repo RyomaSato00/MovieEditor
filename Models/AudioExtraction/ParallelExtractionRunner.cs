@@ -32,20 +32,22 @@ internal class ParallelExtractionRunner(ILogSendable logger) : IDisposable, IAny
                     .WithDegreeOfParallelism(2)
                     .ForAll(movieInfo =>
                     {
+                        var outputPath = GetOutputPath(movieInfo.FilePath, outputFolder, attachedNameTag);
                         AudioExtractor.Extract
                         (
                             movieInfo,
-                            GetOutputPath(movieInfo.FilePath, outputFolder, attachedNameTag),
+                            outputPath,
                             _cancelable.Token
                         );
 
                         _cancelable.Token.ThrowIfCancellationRequested();
 
+                        var outputFileInfo = MovieInfo.GetMovieInfo(outputPath);
                         lock(ParallelLock)
                         {
                             finishedCount++;
                             OnUpdateProgress?.Invoke(finishedCount);
-                            _logger.SendLog($"{movieInfo.FileName} has finished ({finishedCount}/{allCount})");
+                            _logger.SendLog($"{movieInfo.FileName} has finished ({outputFileInfo.FileSizeString}) ({finishedCount}/{allCount})");
                         }
                     });
             }

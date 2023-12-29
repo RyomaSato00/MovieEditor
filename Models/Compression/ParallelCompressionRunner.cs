@@ -37,21 +37,23 @@ internal class ParallelCompressionRunner(ILogSendable logger) : IDisposable, IAn
                 .WithDegreeOfParallelism(2)
                 .ForAll(movieInfo =>
                 {
+                    var outputPath = GetOutputPath(movieInfo.FilePath, outputFolder, attachedNameTag, parameter.Format);
                     VideoCompressor.Compress
                     (
                         movieInfo,
-                        GetOutputPath(movieInfo.FilePath, outputFolder, attachedNameTag, parameter.Format),
+                        outputPath,
                         parameter,
                         _cancelable.Token
                     );
 
                     _cancelable.Token.ThrowIfCancellationRequested();
 
+                    var outputFileInfo = MovieInfo.GetMovieInfo(outputPath);
                     lock (ParallelLock)
                     {
                         finishedCount++;
                         OnUpdateProgress?.Invoke(finishedCount);
-                        _logger.SendLog($"{movieInfo.FileName} has finished ({finishedCount}/{allCount})");
+                        _logger.SendLog($"{movieInfo.FileName} has finished ({outputFileInfo.FileSizeString}) ({finishedCount}/{allCount})");
                     }
                 });
             }
