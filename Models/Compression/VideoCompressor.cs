@@ -33,12 +33,12 @@ internal class VideoCompressor
         }
         else if (0 >= parameter.ScaleWidth && 0 < parameter.ScaleHeight)
         {
-            // アスペクト比からWidthを自動計算
+            // 動画ファイルの解像度情報からWidthを自動計算
             int autoWidth = 0;
             // 0除算回避
-            if (0 != movieInfo.AspectRatio.Height)
+            if (0 != movieInfo.Height)
             {
-                autoWidth = parameter.ScaleHeight * movieInfo.AspectRatio.Width / movieInfo.AspectRatio.Height;
+                autoWidth = parameter.ScaleHeight * movieInfo.Width / movieInfo.Height;
             }
             // 解像度は偶数にする必要がある。
             if (0 != autoWidth % 2)
@@ -49,12 +49,12 @@ internal class VideoCompressor
         }
         else if (0 < parameter.ScaleWidth && 0 >= parameter.ScaleHeight)
         {
-            // アスペクト比からHeightを自動計算
+            // 動画ファイルの解像度情報からHeightを自動計算
             int autoHeight = 0;
             // 0除算回避
-            if (0 != movieInfo.AspectRatio.Width)
+            if (0 != movieInfo.Width)
             {
-                autoHeight = parameter.ScaleWidth * movieInfo.AspectRatio.Height / movieInfo.AspectRatio.Width;
+                autoHeight = parameter.ScaleWidth * movieInfo.Height / movieInfo.Width;
             }
             // 解像度は偶数にする必要がある。
             if (0 != autoHeight % 2)
