@@ -17,13 +17,13 @@
 1. 圧縮したい動画ファイルを「ファイルを追加」ボタンを押して選択する。
    または、動画ファイルを以下の領域にドラッグアンドドロップする。
    
-   <img title="" src="file:///README_imgs/drag_and_drop.png" alt="drag_and_drop.png" data-align="center">
+   <img title="" src="README_imgs/drag_and_drop.png" alt="drag_and_drop.png" data-align="center">
 
 2. 圧縮条件を入力する。数値条件を負の数にすると、「元ファイルと同じ」と認識される。
-   ![圧縮条件.png](README_imgs\圧縮条件.png)
+   ![圧縮条件.png](README_imgs/圧縮条件.png)
 
 3. 出力先のディレクトリを設定する。「参照」ボタンからフォルダを選択するか、エクスプローラーからフォルダをドラッグアンドドロップすることで設定可能である。
-   また、出力ファイルには「出力タグ」で設定した文字列がファイル名に付け加えられる。 （例：出力タグがcmpのとき、movie.mp4 → movie_cmp.mp4）![出力設定.png](README_imgs\出力設定.png)
+   また、出力ファイルには「出力タグ」で設定した文字列がファイル名に付け加えられる。 （例：出力タグがcmpのとき、movie.mp4 → movie_cmp.mp4）![出力設定.png](README_imgs/出力設定.png)
 
 4. 「実行」ボタンを押すことで圧縮が開始される。
 
