@@ -82,13 +82,11 @@ internal partial class MainWindowViewModel : ObservableObject, IDisposable
             _isRunnable.Value = false;
             // チェック付きのファイルリストを取得する
             var sources = MovieInfoList.Where(item => item.IsChecked).Select(item => item.Info).ToArray();
-            var isCanceled = await Run(sources);
+            var processedFiles = await Run(sources);
             // 処理実行終了のため、実行可能（ボタンを押せる）に戻す
             _isRunnable.Value = true;
-            // キャンセルされたならSourceListは変更しない
-            if(isCanceled) return;
             // 処理済ファイルをSourceListから消す（isRunnableの変更可能性あり）
-            RemoveProcessFinishedFiles(sources);
+            RemoveProcessFinishedFiles(processedFiles);
         });
 
         // 設定値反映
@@ -168,17 +166,17 @@ internal partial class MainWindowViewModel : ObservableObject, IDisposable
     /// <summary>
     /// 指定のプロセスを実行する
     /// </summary>
-    /// <returns>キャンセルされたならtrue</returns>
-    private async Task<bool> Run(MovieInfo[] sources)
+    /// <returns>処理済みファイル配列</returns>
+    private async Task<MovieInfo[]> Run(MovieInfo[] sources)
     {
-        var isCanceled = true;
+        var processedFiles = Array.Empty<MovieInfo>();
         switch ((ProcessModeEnum)MainSettings.ProcessMode)
         {
             case ProcessModeEnum.VideoCompression:
                 _modelManager.SendLog("圧縮処理開始");
                 using(var viewModel = CreateProgressWindow(_modelManager.ParallelComp))
                 {
-                    isCanceled = await RunCompression(sources);
+                    processedFiles = await RunCompression(sources);
                 }
                 break;
 
@@ -186,7 +184,7 @@ internal partial class MainWindowViewModel : ObservableObject, IDisposable
                 _modelManager.SendLog("音声抽出処理開始");
                 using(var viewModel = CreateProgressWindow(_modelManager.ParallelExtract))
                 {
-                    isCanceled = await RunExtraction(sources);
+                    processedFiles = await RunExtraction(sources);
                 }
                 break;
 
@@ -194,14 +192,14 @@ internal partial class MainWindowViewModel : ObservableObject, IDisposable
                 _modelManager.SendLog("再生速度変更開始");
                 using(var viewModel = CreateProgressWindow(_modelManager.ParallelSpeedChange))
                 {
-                    isCanceled = await RunSpeedChange(sources);   
+                    processedFiles = await RunSpeedChange(sources);   
                 }
                 break;
 
             default:
-                return true;
+                break;
         }
-        return isCanceled;
+        return processedFiles;
     }
 
     /// <summary>
@@ -221,8 +219,8 @@ internal partial class MainWindowViewModel : ObservableObject, IDisposable
     /// <summary>
     /// 動画圧縮処理を非同期実行する
     /// </summary>
-    /// <returns>キャンセルされたならtrue</returns>
-    private async Task<bool> RunCompression(MovieInfo[] sources)
+    /// <returns>処理済みファイル配列</returns>
+    private async Task<MovieInfo[]> RunCompression(MovieInfo[] sources)
     {
         CompressionParameter parameter = new()
         {
@@ -235,66 +233,67 @@ internal partial class MainWindowViewModel : ObservableObject, IDisposable
         };
         try
         {
-            var isCanceled = await _modelManager.ParallelComp.Run
+            var processedFiles = await _modelManager.ParallelComp.Run
             (
                 sources,
                 MainSettings.OutputFolder,
                 MainSettings.AttachedNameTag,
                 parameter
             );
-            return isCanceled;
+            return processedFiles;
         }
         catch (Exception e)
         {
             _modelManager.SendLog($"想定外のエラー：{e}", LogLevel.Error);
-            return true;
+            // 空配列を返す
+            return Array.Empty<MovieInfo>();
         }
     }
 
     /// <summary>
     /// 音声抽出処理を非同期実行する
     /// </summary>
-    /// <returns>キャンセルされたならtrue</returns>
-    private async Task<bool> RunExtraction(MovieInfo[] sources)
+    /// <returns>処理済みファイル配列</returns>
+    private async Task<MovieInfo[]> RunExtraction(MovieInfo[] sources)
     {
         try
         {
-            var isCanceled = await _modelManager.ParallelExtract.Run
+            var processedFiles = await _modelManager.ParallelExtract.Run
             (
                 sources,
                 MainSettings.OutputFolder,
                 MainSettings.AttachedNameTag
             );
-            return isCanceled;
+            return processedFiles;
         }
         catch (Exception e)
         {
             _modelManager.SendLog($"想定外のエラー：{e}", LogLevel.Error);
-            return true;
+            return Array.Empty<MovieInfo>();
         }
     }
 
     /// <summary>
     /// 再生速度変更処理を非同期実行する
     /// </summary>
-    /// <returns>キャンセルされたならtrue</returns>
-    private async Task<bool> RunSpeedChange(MovieInfo[] sources)
+    /// <returns>処理済みファイル配列</returns>
+    private async Task<MovieInfo[]> RunSpeedChange(MovieInfo[] sources)
     {
         try
         {
-            var isCanceled = await _modelManager.ParallelSpeedChange.Run
+            var processedFiles = await _modelManager.ParallelSpeedChange.Run
             (
                 sources,
                 MainSettings.OutputFolder,
                 MainSettings.AttachedNameTag,
                 MainSettings.Speed.SpeedRate
             );
-            return isCanceled;
+            return processedFiles;
         }
         catch (Exception e)
         {
             _modelManager.SendLog($"想定外のエラー：{e}", LogLevel.Error);
-            return true;
+            return Array.Empty<MovieInfo>();
         }
     }
 
