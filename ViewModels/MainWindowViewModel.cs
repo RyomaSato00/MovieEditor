@@ -92,29 +92,13 @@ internal partial class MainWindowViewModel : ObservableObject, IDisposable
         });
 
         // 設定値反映
-        OutDirectory = _modelManager.SettingReferable.MainSettings_.OutputFolder;
-        OutputNameTag = _modelManager.SettingReferable.MainSettings_.AttachedNameTag;
-        ProcessMode = (int)_modelManager.SettingReferable.MainSettings_.ProcessMode;
-        OutputWidth = _modelManager.SettingReferable.MainSettings_.ScaleWidth;
-        OutputHeight = _modelManager.SettingReferable.MainSettings_.ScaleHeight;
-        OutputFrameRate = _modelManager.SettingReferable.MainSettings_.FrameRate;
-        OutputCodec = _modelManager.SettingReferable.MainSettings_.Codec;
-        IsAudioEraced = _modelManager.SettingReferable.MainSettings_.IsAudioEraced;
-        OutputFormat = _modelManager.SettingReferable.MainSettings_.Format;
+        MainSettings = _modelManager.SettingReferable.MainSettings_;
     }
 
     public void Dispose()
     {
         // 設定値保存
-        _modelManager.SettingReferable.MainSettings_.OutputFolder = OutDirectory;
-        _modelManager.SettingReferable.MainSettings_.AttachedNameTag = OutputNameTag;
-        _modelManager.SettingReferable.MainSettings_.ProcessMode = (ProcessModeEnum)ProcessMode;
-        _modelManager.SettingReferable.MainSettings_.ScaleWidth = OutputWidth;
-        _modelManager.SettingReferable.MainSettings_.ScaleHeight = OutputHeight;
-        _modelManager.SettingReferable.MainSettings_.FrameRate = OutputFrameRate;
-        _modelManager.SettingReferable.MainSettings_.Codec = OutputCodec;
-        _modelManager.SettingReferable.MainSettings_.IsAudioEraced = IsAudioEraced;
-        _modelManager.SettingReferable.MainSettings_.Format = OutputFormat;
+        // _modelManager.SettingReferable.MainSettings_ = MainSettings;
 
         // ReactivePropertyのSubscribeを解除する
         _disposables.Dispose();
@@ -188,7 +172,7 @@ internal partial class MainWindowViewModel : ObservableObject, IDisposable
     private async Task<bool> Run(MovieInfo[] sources)
     {
         var isCanceled = true;
-        switch ((ProcessModeEnum)ProcessMode)
+        switch ((ProcessModeEnum)MainSettings.ProcessMode)
         {
             case ProcessModeEnum.VideoCompression:
                 _modelManager.SendLog("圧縮処理開始");
@@ -206,10 +190,32 @@ internal partial class MainWindowViewModel : ObservableObject, IDisposable
                 }
                 break;
 
+            case ProcessModeEnum.SpeedChange:
+                _modelManager.SendLog("再生速度変更開始");
+                using(var viewModel = CreateProgressWindow(_modelManager.ParallelSpeedChange))
+                {
+                    isCanceled = await RunSpeedChange(sources);   
+                }
+                break;
+
             default:
                 return true;
         }
         return isCanceled;
+    }
+
+    /// <summary>
+    /// 進捗表示用のサブウィンドウを表示する
+    /// </summary>
+    /// <param name="process"></param>
+    /// <returns></returns>
+    private static ProgressWindowViewModel CreateProgressWindow(IAnyProcess process)
+    {
+        var progressWindow = new ProgressWindow();
+        var progressWindowViewModel = new ProgressWindowViewModel(process, progressWindow.Close);
+        progressWindow.DataContext = progressWindowViewModel;
+        progressWindow.Show();
+        return progressWindowViewModel;
     }
 
     /// <summary>
@@ -220,20 +226,20 @@ internal partial class MainWindowViewModel : ObservableObject, IDisposable
     {
         CompressionParameter parameter = new()
         {
-            ScaleWidth = OutputWidth,
-            ScaleHeight = OutputHeight,
-            FrameRate = OutputFrameRate,
-            VideoCodec = OutputCodec,
-            IsAudioEraced = IsAudioEraced,
-            Format = OutputFormat
+            ScaleWidth = MainSettings.Comp.ScaleWidth,
+            ScaleHeight = MainSettings.Comp.ScaleHeight,
+            FrameRate = MainSettings.Comp.FrameRate,
+            VideoCodec = MainSettings.Comp.Codec,
+            IsAudioEraced = MainSettings.Comp.IsAudioEraced,
+            Format = MainSettings.Comp.Format
         };
         try
         {
             var isCanceled = await _modelManager.ParallelComp.Run
             (
                 sources,
-                OutDirectory,
-                OutputNameTag,
+                MainSettings.OutputFolder,
+                MainSettings.AttachedNameTag,
                 parameter
             );
             return isCanceled;
@@ -256,8 +262,8 @@ internal partial class MainWindowViewModel : ObservableObject, IDisposable
             var isCanceled = await _modelManager.ParallelExtract.Run
             (
                 sources,
-                OutDirectory,
-                OutputNameTag
+                MainSettings.OutputFolder,
+                MainSettings.AttachedNameTag
             );
             return isCanceled;
         }
@@ -269,38 +275,37 @@ internal partial class MainWindowViewModel : ObservableObject, IDisposable
     }
 
     /// <summary>
-    /// 進捗表示用のサブウィンドウを表示する
+    /// 再生速度変更処理を非同期実行する
     /// </summary>
-    /// <param name="process"></param>
-    /// <returns></returns>
-    private static ProgressWindowViewModel CreateProgressWindow(IAnyProcess process)
+    /// <returns>キャンセルされたならtrue</returns>
+    private async Task<bool> RunSpeedChange(MovieInfo[] sources)
     {
-        var progressWindow = new ProgressWindow();
-        var progressWindowViewModel = new ProgressWindowViewModel(process, progressWindow.Close);
-        progressWindow.DataContext = progressWindowViewModel;
-        progressWindow.Show();
-        return progressWindowViewModel;
+        try
+        {
+            var isCanceled = await _modelManager.ParallelSpeedChange.Run
+            (
+                sources,
+                MainSettings.OutputFolder,
+                MainSettings.AttachedNameTag,
+                MainSettings.Speed.SpeedRate
+            );
+            return isCanceled;
+        }
+        catch (Exception e)
+        {
+            _modelManager.SendLog($"想定外のエラー：{e}", LogLevel.Error);
+            return true;
+        }
     }
+
 
     [ObservableProperty]
     private ObservableCollection<SourceListItemElement> _movieInfoList = [];
 
     [ObservableProperty] private bool _isAllChecked = true;
 
-    // ***出力先***
-    [ObservableProperty] private string _outDirectory = string.Empty;
-    [ObservableProperty] private string _outputNameTag = string.Empty;
-
-    // ***処理モード***
-    [ObservableProperty] private int _processMode = 0;
-
-    // ***出力設定値***
-    [ObservableProperty] private int _outputWidth = 0;
-    [ObservableProperty] private int _outputHeight = 0;
-    [ObservableProperty] private double _outputFrameRate = 0;
-    [ObservableProperty] private string _outputCodec = string.Empty;
-    [ObservableProperty] private bool _isAudioEraced = false;
-    [ObservableProperty] private string _outputFormat = string.Empty;
+    // ***設定値***
+    [ObservableProperty] private MainSettings _mainSettings;
 
     [ObservableProperty] private string _logHistory = string.Empty;
 
@@ -327,7 +332,7 @@ internal partial class MainWindowViewModel : ObservableObject, IDisposable
         string? directoryPath = _dialogHandler.GetDirectoryFromDialog();
         if (null != directoryPath)
         {
-            OutDirectory = directoryPath;
+            MainSettings.OutputFolder = directoryPath;
         }
     }
 
@@ -393,7 +398,7 @@ internal partial class MainWindowViewModel : ObservableObject, IDisposable
     public void OutDirectory_OnDrop(string directoryPath)
     {
         if (false == Directory.Exists(directoryPath)) return;
-        OutDirectory = directoryPath;
+        MainSettings.OutputFolder = directoryPath;
     }
 }
 

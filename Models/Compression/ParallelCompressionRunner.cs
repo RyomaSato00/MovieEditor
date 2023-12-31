@@ -5,7 +5,7 @@ namespace MovieEditor.Models.Compression;
 
 internal class ParallelCompressionRunner(ILogSendable logger) : IDisposable, IAnyProcess
 {
-    private static readonly object ParallelLock = new();
+    private static readonly object _parallelLock = new();
     private readonly ILogSendable _logger = logger;
     private CancellationTokenSource? _cancelable = null;
 
@@ -49,7 +49,7 @@ internal class ParallelCompressionRunner(ILogSendable logger) : IDisposable, IAn
                     _cancelable.Token.ThrowIfCancellationRequested();
 
                     long fileSize = new FileInfo(outputPath).Length / 1000;
-                    lock (ParallelLock)
+                    lock (_parallelLock)
                     {
                         finishedCount++;
                         OnUpdateProgress?.Invoke(finishedCount);

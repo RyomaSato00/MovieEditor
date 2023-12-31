@@ -8,7 +8,7 @@ internal class JsonManager : ISettingReferable
 {
     private readonly ILogSendable _logger;
     public static readonly string MainSettingFilePath = "MainSettings.json";
-    public MainSettings MainSettings_ { get; }
+    public MainSettings MainSettings_ { get; set; }
 
     public JsonManager(ILogSendable logger)
     {

@@ -95,47 +95,47 @@
                 </DataTemplate>
             </ListView.ItemTemplate>
 		</ListView>
-        <TabControl SelectedIndex="{Binding ProcessMode}">
+        <TabControl SelectedIndex="{Binding MainSettings.ProcessMode}">
             <TabItem Header="動画圧縮">
                 <ui:SimpleStackPanel Orientation="Vertical" Spacing="5">
                     <ui:SimpleStackPanel Orientation="Horizontal" Spacing="10">
                         <ui:SimpleStackPanel Orientation="Horizontal">
                             <Label Content="Width :" VerticalContentAlignment="Center" Margin="8" />
                             <TextBox
-                                Text="{Binding OutputWidth}"
+                                Text="{Binding MainSettings.Comp.ScaleWidth}"
                                 HorizontalContentAlignment="Right"
                                 Height="20" Width="80"/>
                         </ui:SimpleStackPanel>
                         <ui:SimpleStackPanel Orientation="Horizontal">
                             <Label Content="Height :" VerticalContentAlignment="Center" Margin="8" />
                             <TextBox
-                                Text="{Binding OutputHeight}"
+                                Text="{Binding MainSettings.Comp.ScaleHeight}"
                                 HorizontalContentAlignment="Right"
                                 Height="20" Width="80"/>
                         </ui:SimpleStackPanel>
                         <ui:SimpleStackPanel Orientation="Horizontal">
                             <Label Content="フレーム率 :" VerticalContentAlignment="Center" Margin="8" />
                             <TextBox
-                                Text="{Binding OutputFrameRate}"
+                                Text="{Binding MainSettings.Comp.FrameRate}"
                                 HorizontalContentAlignment="Right"
                                 Height="20" Width="60"/>
                         </ui:SimpleStackPanel>
                         <ui:SimpleStackPanel Orientation="Horizontal">
                             <Label Content="コーデック :" VerticalContentAlignment="Center" Margin="8" />
                             <TextBox
-                                Text="{Binding OutputCodec}"
+                                Text="{Binding MainSettings.Comp.Codec}"
                                 Height="20" Width="80"/>
                         </ui:SimpleStackPanel>
                         <ui:SimpleStackPanel Orientation="Horizontal">
                             <Label Content="音声削除 :" VerticalContentAlignment="Center" Margin="8" />
-                            <CheckBox IsChecked="{Binding IsAudioEraced}" />
+                            <CheckBox IsChecked="{Binding MainSettings.Comp.IsAudioEraced}" />
                         </ui:SimpleStackPanel>
                     </ui:SimpleStackPanel>
                     <ui:SimpleStackPanel Orientation="Horizontal" Spacing="10">
                         <ui:SimpleStackPanel Orientation="Horizontal">
                             <Label Content="出力形式 :" VerticalContentAlignment="Center" Margin="8" />
                             <TextBox 
-                                Text="{Binding OutputFormat}"
+                                Text="{Binding MainSettings.Comp.Format}"
                                 Height="20" Width="80" />
                         </ui:SimpleStackPanel>
                     </ui:SimpleStackPanel>
@@ -146,12 +146,21 @@
                     <Label Content="動画ファイルから音声のみを抽出します。コーデックはAACです。" VerticalContentAlignment="Center" />
                 </ui:SimpleStackPanel>
             </TabItem>
+            <TabItem Header="再生速度">
+                <ui:SimpleStackPanel Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Center" >
+                    <Label Content="速度倍率：" HorizontalContentAlignment="Right" VerticalContentAlignment="Center" Width="80" />
+                    <TextBox Text="{Binding MainSettings.Speed.SpeedRate}" 
+                        Height="20" Width="80"
+                        HorizontalContentAlignment="Right" VerticalContentAlignment="Center" />
+                    <Label Content="倍速" VerticalContentAlignment="Center" Margin="10" />
+                </ui:SimpleStackPanel>
+            </TabItem>
         </TabControl>
         <ui:SimpleStackPanel Orientation="Horizontal" Spacing="20">
             <ui:SimpleStackPanel Orientation="Horizontal">
                 <Label Content="出力先 :" VerticalContentAlignment="Center" />
                 <TextBox 
-                    Text="{Binding OutDirectory}"
+                    Text="{Binding MainSettings.OutputFolder}"
                     behavior:TextBoxDragBehavior.DragOverEffect="True"
                     Drop="OutDirectory_OnDrop"
                     Margin="10" Width="350" />
@@ -162,7 +171,7 @@
             <ui:SimpleStackPanel Orientation="Horizontal">
                 <Label Content="出力タグ :" VerticalContentAlignment="Center" Margin="8" />
                 <TextBox
-                    Text="{Binding OutputNameTag}"
+                    Text="{Binding MainSettings.AttachedNameTag}"
                     Height="30" Width="100" />
             </ui:SimpleStackPanel>
             <Button Content="実行" Width="80" HorizontalContentAlignment="Center"
