@@ -91,11 +91,13 @@ internal partial class MainWindowViewModel : ObservableObject, IDisposable
 
         // 設定値反映
         MainSettings = _modelManager.SettingReferable.MainSettings_;
+        OutputFolderPath = _modelManager.SettingReferable.MainSettings_.OutputFolder;
     }
 
     public void Dispose()
     {
         // 設定値保存
+        _modelManager.SettingReferable.MainSettings_.OutputFolder = OutputFolderPath;
         // _modelManager.SettingReferable.MainSettings_ = MainSettings;
 
         // ReactivePropertyのSubscribeを解除する
@@ -236,7 +238,7 @@ internal partial class MainWindowViewModel : ObservableObject, IDisposable
             var processedFiles = await _modelManager.ParallelComp.Run
             (
                 sources,
-                MainSettings.OutputFolder,
+                OutputFolderPath,
                 MainSettings.AttachedNameTag,
                 parameter
             );
@@ -261,7 +263,7 @@ internal partial class MainWindowViewModel : ObservableObject, IDisposable
             var processedFiles = await _modelManager.ParallelExtract.Run
             (
                 sources,
-                MainSettings.OutputFolder,
+                OutputFolderPath,
                 MainSettings.AttachedNameTag
             );
             return processedFiles;
@@ -284,7 +286,7 @@ internal partial class MainWindowViewModel : ObservableObject, IDisposable
             var processedFiles = await _modelManager.ParallelSpeedChange.Run
             (
                 sources,
-                MainSettings.OutputFolder,
+                OutputFolderPath,
                 MainSettings.AttachedNameTag,
                 MainSettings.Speed.SpeedRate
             );
@@ -305,6 +307,7 @@ internal partial class MainWindowViewModel : ObservableObject, IDisposable
 
     // ***設定値***
     [ObservableProperty] private MainSettings _mainSettings;
+    [ObservableProperty] private string _outputFolderPath;
 
     [ObservableProperty] private string _logHistory = string.Empty;
 
@@ -331,7 +334,7 @@ internal partial class MainWindowViewModel : ObservableObject, IDisposable
         string? directoryPath = _dialogHandler.GetDirectoryFromDialog();
         if (null != directoryPath)
         {
-            MainSettings.OutputFolder = directoryPath;
+            OutputFolderPath = directoryPath;
         }
     }
 
@@ -397,7 +400,7 @@ internal partial class MainWindowViewModel : ObservableObject, IDisposable
     public void OutDirectory_OnDrop(string directoryPath)
     {
         if (false == Directory.Exists(directoryPath)) return;
-        MainSettings.OutputFolder = directoryPath;
+        OutputFolderPath = directoryPath;
     }
 }
 

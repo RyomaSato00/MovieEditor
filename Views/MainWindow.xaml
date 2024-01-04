@@ -160,7 +160,7 @@
             <ui:SimpleStackPanel Orientation="Horizontal">
                 <Label Content="出力先 :" VerticalContentAlignment="Center" />
                 <TextBox 
-                    Text="{Binding MainSettings.OutputFolder}"
+                    Text="{Binding OutputFolderPath}"
                     behavior:TextBoxDragBehavior.DragOverEffect="True"
                     Drop="OutDirectory_OnDrop"
                     Margin="10" Width="350" />
