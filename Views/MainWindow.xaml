@@ -7,7 +7,7 @@
         xmlns:ui="http://schemas.modernwpf.com/2019"
         xmlns:behavior="clr-namespace:MovieEditor.Views.Behavior"
         mc:Ignorable="d"
-        Title="Movie Editor v1.1.2" Height="850" Width="800"
+        Title="Movie Editor v1.2.2" Height="850" Width="800"
         ui:WindowHelper.UseModernWindowStyle="True">
     <Window.Resources>
         <!--DefaultListViewItemStyleをBasedOnするとGridViewColumnの中でDisplayMemberBindingにより各要素をBindingすることができない。

@@ -1,5 +1,8 @@
+using System.Diagnostics;
 using System.IO;
+using System.Windows.Media.Imaging;
 using FFMpegCore;
+using MyCommonFunctions;
 
 namespace MovieEditor.Models.Information;
 
@@ -15,6 +18,8 @@ internal record MovieInfo
         ".avi",
         ".wmv"
     ];
+
+    public static readonly string ThumbnailCacheFolder = @"cache\thumbnails";
 
     public string FilePath { get; init; } = string.Empty;
     public string FileName { get; init; } = string.Empty;
@@ -34,14 +39,14 @@ internal record MovieInfo
 
     public static MovieInfo GetMovieInfo(string filePath)
     {
-        if(!File.Exists(filePath))
+        if (false == File.Exists(filePath))
         {
             throw new FileNotFoundException("ファイルが見つかりません。", filePath);
         }
 
-        if (!MovieFileExtension.Contains(Path.GetExtension(filePath)))
+        if (false == MovieFileExtension.Contains(Path.GetExtension(filePath)))
         {
-            throw new ArgumentOutOfRangeException(Path.GetFileName(filePath),"この拡張子は対応していません。");
+            throw new ArgumentOutOfRangeException(Path.GetFileName(filePath), "この拡張子は対応していません。");
         }
 
         var mediaInfo = FFProbe.Analyse(filePath);
@@ -61,5 +66,73 @@ internal record MovieInfo
             VideoCodec = video.CodecName,
             VideoBitRate = (int)(video.BitRate / 1000)
         };
+    }
+
+    /// <summary>
+    /// 動画からサムネイル用の画像(jpg)を生成し、そのuriを返す
+    /// </summary>
+    /// <param name="filePath"></param>
+    /// <param name="cancelToken"></param>
+    /// <returns></returns>
+    public static Uri GetThumbnailUri(string filePath, CancellationToken cancelToken = default)
+    {
+        if (false == Directory.Exists(ThumbnailCacheFolder))
+        {
+            Directory.CreateDirectory(ThumbnailCacheFolder);
+        }
+
+        string thumbnailImagePath = Path.Combine(ThumbnailCacheFolder, $"{Path.GetFileNameWithoutExtension(filePath)}.jpg");
+        // ファイルパスの重複を回避する
+        MyApi.ToNonDuplicatePath(ref thumbnailImagePath);
+        var startInfo = new ProcessStartInfo("ffmpeg")
+        {
+            Arguments = $"-y -i \"{filePath}\" -ss 0 -vframes 1 -q:v 0 {thumbnailImagePath}",
+            UseShellExecute = false,
+            CreateNoWindow = true
+        };
+
+        // キャッシュフォルダにサムネイル用のjpgファイルを生成する
+        using var process = new Process() { StartInfo = startInfo };
+        process.Start();
+
+        while (false == process.HasExited
+        && false == cancelToken.IsCancellationRequested) { }
+
+        // キャンセルが飛ばなければjpgファイルが生成されているはず。ビットマップを渡せる。
+        if(false == cancelToken.IsCancellationRequested)
+        {
+            return new Uri(Path.GetFullPath(thumbnailImagePath));
+        }
+        else
+        {
+            throw new FileNotFoundException("サムネイル画像が見つかりません");
+        }
+    }
+
+    /// <summary>
+    /// サムネイル用に生成した画像ファイルをすべて削除する
+    /// </summary>
+    public static void DeleteThumbnailCaches()
+    {
+        // キャッシュフォルダがないなら、何もしない
+        if(false == Directory.Exists(ThumbnailCacheFolder)) return;
+
+        string[] files = Directory.GetFiles(ThumbnailCacheFolder);
+        // キャッシュファイルを削除
+        foreach(var file in files)
+        {
+            try
+            {
+                File.Delete(file);
+            }
+            catch(FileNotFoundException)
+            {
+                continue;
+            }
+            catch(UnauthorizedAccessException)
+            {
+                continue;
+            }
+        }
     }
 }
