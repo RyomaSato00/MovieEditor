@@ -9,12 +9,74 @@
         mc:Ignorable="d"
         Title="Movie Editor v1.1.2" Height="850" Width="800"
         ui:WindowHelper.UseModernWindowStyle="True">
+    <Window.Resources>
+        <!--DefaultListViewItemStyleをBasedOnするとGridViewColumnの中でDisplayMemberBindingにより各要素をBindingすることができない。
+        Templateを定義して、ItemTemplateとして反映させる-->
+        <!--サムネイルを表示せずにファイル名を表示する用-->
+        <DataTemplate x:Key="ThumbnailHidden">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="70" />
+                    <ColumnDefinition Width="50" />
+                    <ColumnDefinition Width="250" />
+                    <ColumnDefinition Width="80" />
+                    <ColumnDefinition Width="80" />
+                    <ColumnDefinition Width="150" />
+                    <ColumnDefinition Width="100" />
+                    <ColumnDefinition Width="80" />
+                    <ColumnDefinition Width="100" />
+                </Grid.ColumnDefinitions>
+                <Button Grid.Column="0" Content="削除"
+                    Command="{Binding DataContext.RemoveItemCommand, RelativeSource={RelativeSource AncestorType=ListView}}" 
+                    CommandParameter="{Binding Info.FilePath}" />
+                <CheckBox Grid.Column="1" IsChecked="{Binding IsChecked}" />
+                <TextBlock Grid.Column="2" Text="{Binding Info.FileName}" />
+                <TextBlock Grid.Column="3" Text="{Binding Info.FileSizeString}" />
+                <TextBlock Grid.Column="4" Text="{Binding Info.FrameRateString}" />
+                <TextBlock Grid.Column="5" Text="{Binding Info.ScaleString}" />
+                <TextBlock Grid.Column="6" Text="{Binding Info.VideoBitRateString}" />
+                <TextBlock Grid.Column="7" Text="{Binding Info.VideoCodec}" />
+                <TextBlock Grid.Column="8" Text="{Binding Info.FormattedDuration}" />
+            </Grid>
+        </DataTemplate>
+        
+        <!--ファイル名の代わりにサムネイルを表示する用-->
+        <DataTemplate x:Key="ThumbnailVisible">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="70" />
+                    <ColumnDefinition Width="50" />
+                    <ColumnDefinition Width="250" />
+                    <ColumnDefinition Width="80" />
+                    <ColumnDefinition Width="80" />
+                    <ColumnDefinition Width="150" />
+                    <ColumnDefinition Width="100" />
+                    <ColumnDefinition Width="80" />
+                    <ColumnDefinition Width="100" />
+                </Grid.ColumnDefinitions>
+                <Button Grid.Column="0" Content="削除"
+                    Command="{Binding DataContext.RemoveItemCommand, RelativeSource={RelativeSource AncestorType=ListView}}" 
+                    CommandParameter="{Binding Info.FilePath}" />
+                <CheckBox Grid.Column="1" IsChecked="{Binding IsChecked}" />
+                <Image Grid.Column="2" Source="{Binding Thumbnail}" Height="100" />
+                <TextBlock Grid.Column="3" Text="{Binding Info.FileSizeString}" />
+                <TextBlock Grid.Column="4" Text="{Binding Info.FrameRateString}" />
+                <TextBlock Grid.Column="5" Text="{Binding Info.ScaleString}" />
+                <TextBlock Grid.Column="6" Text="{Binding Info.VideoBitRateString}" />
+                <TextBlock Grid.Column="7" Text="{Binding Info.VideoCodec}" />
+                <TextBlock Grid.Column="8" Text="{Binding Info.FormattedDuration}" />
+            </Grid>
+        </DataTemplate>
+    </Window.Resources>
 
     <ui:SimpleStackPanel Margin="12" Spacing="24">
-        <ui:SimpleStackPanel Orientation="Horizontal" Spacing="400" HorizontalAlignment="Center">
+        <ui:SimpleStackPanel Orientation="Horizontal" Spacing="220" HorizontalAlignment="Center">
             <ui:SimpleStackPanel Orientation="Horizontal" HorizontalAlignment="Left">
                 <Label Content="ファイル数：" VerticalContentAlignment="Center" />
                 <Label Content="{Binding MovieInfoList.Count}" VerticalContentAlignment="Center" Width="60" />
+                <Label Content="サムネイル：" VerticalContentAlignment="Center" />
+                <ui:ToggleSwitch Toggled="SourceList_OnTemplateToggled"
+                    IsOn="False" OffContent="非表示" OnContent="表示" />
             </ui:SimpleStackPanel>
             <ui:SimpleStackPanel Orientation="Horizontal" Spacing="10" HorizontalAlignment="Right">
                 <Button Content="ファイルを追加" Command="{Binding ReferSourceFilesCommand}" />
@@ -26,7 +88,9 @@
             behavior:ListViewDragBehavior.DragOverEffect="True"
             behavior:ListViewHorizontalScrollBehavior.ShiftHorizontalScroll="True"
             Drop="SourceList_OnDrop"
-            ItemsSource="{Binding MovieInfoList}" >
+            ItemsSource="{Binding MovieInfoList}"
+            ItemTemplate="{StaticResource ThumbnailHidden}" >
+
 			<ListView.ItemContainerStyle>
 				<!--各項目をダブルクリックしたときのイベントハンドラを設定したい
 				    ただし、Styleを定義するとuiデザインが一部デフォルトに上書きされてしまうため、
@@ -35,6 +99,7 @@
 					<EventSetter Event="MouseDoubleClick" Handler="SourceList_OnItemDoubleClicked" />
 				</Style>
 			</ListView.ItemContainerStyle>
+
 			<ListView.View>
                 <GridView>
                     <GridViewColumn Width="70" />
@@ -64,37 +129,8 @@
 					<GridViewColumn Width="120" Header="再生時間" />
                 </GridView>				
 			</ListView.View>
-			<!--上でDefaultListViewItemStyleをBasedOnするとGridViewColumnの中でDisplayMemberBindingにより各要素をBindingすることができない。
-			    Templateを定義して、ItemTemplateとして反映させる-->
-            <ListView.ItemTemplate>
-                <DataTemplate>
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="70" />
-                            <ColumnDefinition Width="50" />
-                            <ColumnDefinition Width="250" />
-                            <ColumnDefinition Width="80" />
-                            <ColumnDefinition Width="80" />
-                            <ColumnDefinition Width="150" />
-                            <ColumnDefinition Width="100" />
-                            <ColumnDefinition Width="80" />
-                            <ColumnDefinition Width="100" />
-                        </Grid.ColumnDefinitions>
-                        <Button Grid.Column="0" Content="削除"
-                            Command="{Binding DataContext.RemoveItemCommand, RelativeSource={RelativeSource AncestorType=ListView}}" 
-                            CommandParameter="{Binding Info.FilePath}" />
-                        <CheckBox Grid.Column="1" IsChecked="{Binding IsChecked}" />
-                        <TextBlock Grid.Column="2" Text="{Binding Info.FileName}" />
-                        <TextBlock Grid.Column="3" Text="{Binding Info.FileSizeString}" />
-                        <TextBlock Grid.Column="4" Text="{Binding Info.FrameRateString}" />
-                        <TextBlock Grid.Column="5" Text="{Binding Info.ScaleString}" />
-                        <TextBlock Grid.Column="6" Text="{Binding Info.VideoBitRateString}" />
-                        <TextBlock Grid.Column="7" Text="{Binding Info.VideoCodec}" />
-                        <TextBlock Grid.Column="8" Text="{Binding Info.FormattedDuration}" />
-                    </Grid>
-                </DataTemplate>
-            </ListView.ItemTemplate>
 		</ListView>
+
         <TabControl SelectedIndex="{Binding MainSettings.ProcessMode}">
             <TabItem Header="動画圧縮">
                 <ui:SimpleStackPanel Orientation="Vertical" Spacing="5">
@@ -141,11 +177,13 @@
                     </ui:SimpleStackPanel>
                 </ui:SimpleStackPanel>
             </TabItem>
+
             <TabItem Header="音声抽出">
                 <ui:SimpleStackPanel HorizontalAlignment="Center">
                     <Label Content="動画ファイルから音声のみを抽出します。コーデックはAACです。" VerticalContentAlignment="Center" />
                 </ui:SimpleStackPanel>
             </TabItem>
+
             <TabItem Header="再生速度">
                 <ui:SimpleStackPanel Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Center" >
                     <Label Content="速度倍率：" HorizontalContentAlignment="Right" VerticalContentAlignment="Center" Width="80" />
@@ -156,6 +194,7 @@
                 </ui:SimpleStackPanel>
             </TabItem>
         </TabControl>
+
         <ui:SimpleStackPanel Orientation="Horizontal" Spacing="20">
             <ui:SimpleStackPanel Orientation="Horizontal">
                 <Label Content="出力先 :" VerticalContentAlignment="Center" />
@@ -179,6 +218,7 @@
                 Command="{Binding RunCommand}"
                 Foreground="Black" FontWeight="Bold" FontSize="18" FontFamily="Arial" />
         </ui:SimpleStackPanel>
+
         <TextBox 
             Text="{Binding LogHistory}"
             IsReadOnly="True"

@@ -36,3 +36,4 @@ Release/
 Debug/
 SampleVideo/
 *.json
+cache/

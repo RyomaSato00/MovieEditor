@@ -40,6 +40,26 @@ public partial class MainWindow : Window
         _mainWindowViewModel.SourceList_OnItemDoubleClicked(item);
     }
 
+    /// <summary>
+    /// トグルスイッチによってサムネイルの表示・非表示を切り替える
+    /// </summary>
+    /// <param name="sender"></param>
+    /// <param name="e"></param>
+    private void SourceList_OnTemplateToggled(object sender, RoutedEventArgs e)
+    {
+        if(sender is not ModernWpf.Controls.ToggleSwitch toggleSwitch) return;
+        // トグルONならばサムネイルを表示する
+        if(toggleSwitch.IsOn)
+        {
+            SourceList.ItemTemplate = (DataTemplate)FindResource("ThumbnailVisible");
+        }
+        // トグルOFFならばサムネイルではなくファイル名を表示する
+        else
+        {
+            SourceList.ItemTemplate = (DataTemplate)FindResource("ThumbnailHidden");
+        }
+    }
+
     private void SourceListHeader0_OnChecked(object sender, RoutedEventArgs e)
     {
         if(sender is not CheckBox) return;

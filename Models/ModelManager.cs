@@ -1,6 +1,7 @@
 
 using MovieEditor.Models.AudioExtraction;
 using MovieEditor.Models.Compression;
+using MovieEditor.Models.Information;
 using MovieEditor.Models.Json;
 using MovieEditor.Models.SpeedChange;
 
@@ -27,6 +28,8 @@ internal class ModelManager : IDisposable
         _parallelComp = new ParallelCompressionRunner(_logSender);
         _parallelExtract = new ParallelExtractionRunner(_logSender);
         _speedChange = new ParallelSpeedChangeRunner(_logSender);
+        // 前回使用したキャッシュがあれば削除する
+        MovieInfo.DeleteThumbnailCaches();
     }
 
     public void SendLog(string message, LogLevel level = LogLevel.Info) => _logSender.SendLog(message, level);

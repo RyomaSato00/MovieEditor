@@ -5,6 +5,8 @@ using System.Reactive.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using System.Windows.Media.Imaging;
+using System.Windows.Shell;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using MovieEditor.Models;
@@ -112,7 +114,7 @@ internal partial class MainWindowViewModel : ObservableObject, IDisposable
     private async Task GiveSourceFiles(string[] filePaths)
     {
         // ファイル情報格納用
-        List<MovieInfo> infos = [];
+        List<(MovieInfo info, Uri thumbnailUri)> items = [];
         // 非同期でファイル情報を取得する
         await Task.Run(() =>
         {
@@ -123,7 +125,9 @@ internal partial class MainWindowViewModel : ObservableObject, IDisposable
 
                 try
                 {
-                    infos.Add(MovieInfo.GetMovieInfo(filePath));
+                    var info = MovieInfo.GetMovieInfo(filePath);
+                    var thumbnailUri = MovieInfo.GetThumbnailUri(filePath);
+                    items.Add((info, thumbnailUri));
                 }
                 catch (FileNotFoundException e)
                 {
@@ -145,9 +149,9 @@ internal partial class MainWindowViewModel : ObservableObject, IDisposable
         });
 
         // MovieInfoListへの変更はメインスレッドで行う必要がある
-        foreach (var info in infos)
+        foreach (var (info, thumbnailUri) in items)
         {
-            MovieInfoList.Add(new SourceListItemElement(info));
+            MovieInfoList.Add(new SourceListItemElement(info, thumbnailUri));
         }
     }
 
@@ -404,8 +408,9 @@ internal partial class MainWindowViewModel : ObservableObject, IDisposable
     }
 }
 
-internal partial class SourceListItemElement(MovieInfo movieInfo) : ObservableObject
+internal partial class SourceListItemElement(MovieInfo movieInfo, Uri thumbnailUri) : ObservableObject
 {
     [ObservableProperty] private bool _isChecked = true;
+    public BitmapImage Thumbnail { get; init; } = new BitmapImage(thumbnailUri);
     public MovieInfo Info { get; init; } = movieInfo;
 }
