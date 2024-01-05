@@ -86,7 +86,7 @@ internal record MovieInfo
         MyApi.ToNonDuplicatePath(ref thumbnailImagePath);
         var startInfo = new ProcessStartInfo("ffmpeg")
         {
-            Arguments = $"-y -i \"{filePath}\" -ss 0 -vframes 1 -q:v 0 {thumbnailImagePath}",
+            Arguments = $"-y -i \"{filePath}\" -ss 0 -vframes 1 -q:v 0 \"{thumbnailImagePath}\"",
             UseShellExecute = false,
             CreateNoWindow = true
         };
