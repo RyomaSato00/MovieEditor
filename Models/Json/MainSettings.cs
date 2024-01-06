@@ -5,6 +5,7 @@ internal class MainSettings
     public string OutputFolder { get; set; } = @"C:\Users";
     public string AttachedNameTag { get; set; } = "cmp";
     public int ProcessMode { get; set; } = (int)ProcessModeEnum.VideoCompression;
+    public bool IsThumbnailVisible { get; set; } = false;
     public CompressionCondition Comp { get; set; } = new();
     public SpeedCondition Speed { get; set; } = new();
 }

@@ -76,7 +76,7 @@
                 <Label Content="{Binding MovieInfoList.Count}" VerticalContentAlignment="Center" Width="60" />
                 <Label Content="サムネイル：" VerticalContentAlignment="Center" />
                 <ui:ToggleSwitch Toggled="SourceList_OnTemplateToggled"
-                    IsOn="False" OffContent="非表示" OnContent="表示" />
+                    IsOn="{Binding MainSettings.IsThumbnailVisible}" OffContent="非表示" OnContent="表示" />
             </ui:SimpleStackPanel>
             <ui:SimpleStackPanel Orientation="Horizontal" Spacing="10" HorizontalAlignment="Right">
                 <Button Content="ファイルを追加" Command="{Binding ReferSourceFilesCommand}" />

@@ -36,6 +36,17 @@ internal partial class MainWindowViewModel : ObservableObject, IDisposable
     /// <summary> ReactivePropertyに依存可能なRunコマンド </summary>
     public ReactiveCommand RunCommand { get; }
 
+    [ObservableProperty]
+    private ObservableCollection<SourceListItemElement> _movieInfoList = [];
+
+    [ObservableProperty] private bool _isAllChecked = true;
+
+    // ***設定値***
+    [ObservableProperty] private MainSettings _mainSettings;
+    [ObservableProperty] private string _outputFolderPath;
+
+    [ObservableProperty] private string _logHistory = string.Empty;
+
     public MainWindowViewModel()
     {
         _modelManager = new ModelManager
@@ -302,18 +313,6 @@ internal partial class MainWindowViewModel : ObservableObject, IDisposable
             return Array.Empty<MovieInfo>();
         }
     }
-
-
-    [ObservableProperty]
-    private ObservableCollection<SourceListItemElement> _movieInfoList = [];
-
-    [ObservableProperty] private bool _isAllChecked = true;
-
-    // ***設定値***
-    [ObservableProperty] private MainSettings _mainSettings;
-    [ObservableProperty] private string _outputFolderPath;
-
-    [ObservableProperty] private string _logHistory = string.Empty;
 
     [RelayCommand]
     private async Task ReferSourceFiles()
