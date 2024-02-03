@@ -25,6 +25,7 @@
                     <ColumnDefinition Width="100" />
                     <ColumnDefinition Width="80" />
                     <ColumnDefinition Width="100" />
+                    <ColumnDefinition Width="120" />
                 </Grid.ColumnDefinitions>
                 <Button Grid.Column="0" Content="削除"
                     Command="{Binding DataContext.RemoveItemCommand, RelativeSource={RelativeSource AncestorType=ListView}}" 
@@ -37,6 +38,7 @@
                 <TextBlock Grid.Column="6" Text="{Binding Info.VideoBitRateString}" />
                 <TextBlock Grid.Column="7" Text="{Binding Info.VideoCodec}" />
                 <TextBlock Grid.Column="8" Text="{Binding Info.FormattedDuration}" />
+                <TextBlock Grid.Column="9" Text="{Binding TrimTime}" />
             </Grid>
         </DataTemplate>
         
@@ -53,6 +55,7 @@
                     <ColumnDefinition Width="100" />
                     <ColumnDefinition Width="80" />
                     <ColumnDefinition Width="100" />
+                    <ColumnDefinition Width="120" />
                 </Grid.ColumnDefinitions>
                 <Button Grid.Column="0" Content="削除"
                     Command="{Binding DataContext.RemoveItemCommand, RelativeSource={RelativeSource AncestorType=ListView}}" 
@@ -65,6 +68,7 @@
                 <TextBlock Grid.Column="6" Text="{Binding Info.VideoBitRateString}" />
                 <TextBlock Grid.Column="7" Text="{Binding Info.VideoCodec}" />
                 <TextBlock Grid.Column="8" Text="{Binding Info.FormattedDuration}" />
+                <TextBlock Grid.Column="9" Text="{Binding TrimTime}" />
             </Grid>
         </DataTemplate>
     </Window.Resources>
@@ -125,8 +129,9 @@
 					<GridViewColumn Width="150" Header="解像度(W : H)" />
                     <GridViewColumn Width="100" Header="ビットレート" />
 					<GridViewColumn Width="80" Header="コーデック" />
+					<GridViewColumn Width="100" Header="再生時間" />
                     <!--DataTemplateで定義しているよりもWidthを広くすることで要素が列からはみ出なくなる（？）-->
-					<GridViewColumn Width="120" Header="再生時間" />
+                    <GridViewColumn Width="140" Header="トリミング" />
                 </GridView>				
 			</ListView.View>
 		</ListView>

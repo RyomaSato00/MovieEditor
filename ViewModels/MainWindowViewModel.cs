@@ -412,4 +412,7 @@ internal partial class SourceListItemElement(MovieInfo movieInfo, Uri thumbnailU
     [ObservableProperty] private bool _isChecked = true;
     public BitmapImage Thumbnail { get; init; } = new BitmapImage(thumbnailUri);
     public MovieInfo Info { get; init; } = movieInfo;
+    public TimeSpan TrimStart { get; set; } = TimeSpan.Zero;
+    public TimeSpan TrimEnd { get; set; } = movieInfo.Duration;
+    public string TrimTime => $"{TrimStart:mm\\:ss\\.ff}-{TrimEnd:mm\\:ss\\.ff}";
 }
