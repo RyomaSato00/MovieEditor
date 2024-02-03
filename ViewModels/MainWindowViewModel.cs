@@ -233,6 +233,16 @@ internal partial class MainWindowViewModel : ObservableObject, IDisposable
         return progressWindowViewModel;
     }
 
+    private static (TimeTrimWindow, TimeTrimWindowViewModel) CreateTimeTrimWindow()
+    {
+        var timeTrimWindow = new TimeTrimWindow();
+        var timeTrimWindowViewModel = new TimeTrimWindowViewModel();
+        timeTrimWindow.DataContext = timeTrimWindowViewModel;
+        timeTrimWindow.Closing += (_, _) => timeTrimWindowViewModel.Dispose();
+        timeTrimWindow.Show();
+        return (timeTrimWindow, timeTrimWindowViewModel);
+    }
+
     /// <summary>
     /// 動画圧縮処理を非同期実行する
     /// </summary>
@@ -353,6 +363,27 @@ internal partial class MainWindowViewModel : ObservableObject, IDisposable
         }
     }
 
+    /// <summary>
+    /// ListViewの項目で右クリックメニュー「時間範囲指定」をクリックしたときのイベントハンドラ
+    /// </summary>
+    /// <param name="info"></param>
+    [RelayCommand]
+    private async Task TrimByTime(MovieInfo info)
+    {
+        var (window, viewModel) = CreateTimeTrimWindow();
+        try
+        {
+            var (trimStart, trimEnd) = await viewModel.ResultWaitable;
+            window.Close();
+            System.Diagnostics.Debug.WriteLine($"start:{trimStart}, end:{trimEnd}");
+        }
+        catch(TaskCanceledException)
+        {
+
+        }
+        System.Diagnostics.Debug.WriteLine("時間範囲指定終了");
+    }
+
     [RelayCommand] private void Test()
     {
 
@@ -412,7 +443,15 @@ internal partial class SourceListItemElement(MovieInfo movieInfo, Uri thumbnailU
     [ObservableProperty] private bool _isChecked = true;
     public BitmapImage Thumbnail { get; init; } = new BitmapImage(thumbnailUri);
     public MovieInfo Info { get; init; } = movieInfo;
-    public TimeSpan TrimStart { get; set; } = TimeSpan.Zero;
-    public TimeSpan TrimEnd { get; set; } = movieInfo.Duration;
-    public string TrimTime => $"{TrimStart:mm\\:ss\\.ff}-{TrimEnd:mm\\:ss\\.ff}";
+    public TimeSpan? TrimStart { get; set; } = null;
+    public TimeSpan? TrimEnd { get; set; } = null;
+    public string TrimTime 
+    {
+        get
+        {
+            var start = TrimStart ?? TimeSpan.Zero;
+            var end = TrimEnd ?? Info.Duration;
+            return $"{start:mm\\:ss\\.ff}-{end:mm\\:ss\\.ff}";
+        }
+    }
 }
