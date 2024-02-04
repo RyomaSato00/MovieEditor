@@ -1,38 +1,37 @@
 using System.IO;
 using System.Net.Http.Json;
+using MyCommonFunctions;
 using Newtonsoft.Json;
 
 namespace MovieEditor.Models.Json;
 
 internal class JsonManager : ISettingReferable
 {
-    private readonly ILogSendable _logger;
     public static readonly string MainSettingFilePath = "MainSettings.json";
     public MainSettings MainSettings_ { get; set; }
 
-    public JsonManager(ILogSendable logger)
+    public JsonManager()
     {
-        _logger = logger;
         try
         {
             MainSettings_ = LoadMainSettings();
-            _logger.SendLog("jsonファイル読み取り完了");
+            MyConsole.WriteLine("jsonファイル読み取り完了");
         }
         catch(FileNotFoundException)
         {
-            _logger.SendLog("jsonファイルが見つかりません。新規生成します。");
+            MyConsole.WriteLine("jsonファイルが見つかりません。新規生成します。", MyConsole.Level.Info);
             MainSettings_ = new MainSettings();
         }
         catch(FormatException e)
         {
-            _logger.SendLog(e.Message, LogLevel.Warning);
-            _logger.SendLog("jsonファイルを新規生成します。");
+            MyConsole.WriteLine(e.Message, MyConsole.Level.Warning);
+            MyConsole.WriteLine("jsonファイルを新規生成します。", MyConsole.Level.Info);
             MainSettings_ = new MainSettings();
         }
         catch(Exception e)
         {
-            _logger.SendLog("想定外のエラー", LogLevel.Error);
-            _logger.SendLog(e.Message, LogLevel.Error);
+            MyConsole.WriteLine("想定外のエラー", MyConsole.Level.Error);
+            MyConsole.WriteLine(e.Message, MyConsole.Level.Error);
             throw;
         }
     }

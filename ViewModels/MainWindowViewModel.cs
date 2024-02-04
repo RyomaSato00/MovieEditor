@@ -14,6 +14,7 @@ using MovieEditor.Models.Compression;
 using MovieEditor.Models.Information;
 using MovieEditor.Models.Json;
 using MovieEditor.Views;
+using MyCommonFunctions;
 using Reactive.Bindings;
 using Reactive.Bindings.Disposables;
 using Reactive.Bindings.Extensions;
@@ -22,6 +23,7 @@ namespace MovieEditor.ViewModels;
 
 internal partial class MainWindowViewModel : ObservableObject, IDisposable
 {
+    private static readonly object _parallelLock = new();
     private readonly DialogHandler _dialogHandler = new();
     private readonly ModelManager _modelManager;
     /// <summary> Reactive Propertyの後始末用 </summary>
@@ -49,12 +51,8 @@ internal partial class MainWindowViewModel : ObservableObject, IDisposable
 
     public MainWindowViewModel()
     {
-        _modelManager = new ModelManager
-        ((string message) =>
-        {
-            LogHistory = message;
-        });
-
+        MyConsole.OnWrite += messages => LogHistory = messages;
+        _modelManager = new ModelManager();
         _reactiveSourceList = MovieInfoList.ToReadOnlyReactiveCollection();
 
         _reactiveSourceList
@@ -142,19 +140,31 @@ internal partial class MainWindowViewModel : ObservableObject, IDisposable
                 }
                 catch (FileNotFoundException e)
                 {
-                    _modelManager.SendLogFromAsync(e.Message, LogLevel.Warning);
+                    lock (_parallelLock)
+                    {
+                        MyConsole.WriteLine(e.Message, MyConsole.Level.Warning);
+                    }
                 }
                 catch (ArgumentOutOfRangeException e)
                 {
-                    _modelManager.SendLogFromAsync(e.Message, LogLevel.Warning);
+                    lock(_parallelLock)
+                    {
+                        MyConsole.WriteLine(e.Message, MyConsole.Level.Warning);
+                    }
                 }
                 catch (FFMpegCore.Exceptions.FFMpegException)
                 {
-                    _modelManager.SendLogFromAsync($"ファイルが壊れている可能性があります。ファイルを読み込めません：{filePath}", LogLevel.Warning);
+                    lock(_parallelLock)
+                    {
+                        MyConsole.WriteLine($"ファイルが壊れている可能性があります。ファイルを読み込めません：{filePath}", MyConsole.Level.Warning);
+                    }
                 }
                 catch (Exception e)
                 {
-                    _modelManager.SendLogFromAsync($"想定外のエラー：{e.Message}", LogLevel.Error);
+                    lock(_parallelLock)
+                    {
+                        MyConsole.WriteLine($"想定外のエラー：{e.Message}", MyConsole.Level.Error);
+                    }
                 }
             }
         });
@@ -190,7 +200,7 @@ internal partial class MainWindowViewModel : ObservableObject, IDisposable
         switch ((ProcessModeEnum)MainSettings.ProcessMode)
         {
             case ProcessModeEnum.VideoCompression:
-                _modelManager.SendLog("圧縮処理開始");
+                MyConsole.WriteLine("圧縮処理開始", MyConsole.Level.Info);
                 using (var viewModel = CreateProgressWindow(_modelManager.ParallelComp))
                 {
                     processedFiles = await RunCompression(sources);
@@ -198,7 +208,7 @@ internal partial class MainWindowViewModel : ObservableObject, IDisposable
                 break;
 
             case ProcessModeEnum.AudioExtraction:
-                _modelManager.SendLog("音声抽出処理開始");
+                MyConsole.WriteLine("音声抽出処理開始", MyConsole.Level.Info);
                 using (var viewModel = CreateProgressWindow(_modelManager.ParallelExtract))
                 {
                     processedFiles = await RunExtraction(sources);
@@ -206,7 +216,7 @@ internal partial class MainWindowViewModel : ObservableObject, IDisposable
                 break;
 
             case ProcessModeEnum.SpeedChange:
-                _modelManager.SendLog("再生速度変更開始");
+                MyConsole.WriteLine("再生速度変更開始", MyConsole.Level.Info);
                 using (var viewModel = CreateProgressWindow(_modelManager.ParallelSpeedChange))
                 {
                     processedFiles = await RunSpeedChange(sources);
@@ -271,7 +281,7 @@ internal partial class MainWindowViewModel : ObservableObject, IDisposable
         }
         catch (Exception e)
         {
-            _modelManager.SendLog($"想定外のエラー：{e}", LogLevel.Error);
+            MyConsole.WriteLine($"想定外のエラー：{e}", MyConsole.Level.Error);
             // 空配列を返す
             return Array.Empty<MovieInfo>();
         }
@@ -295,7 +305,7 @@ internal partial class MainWindowViewModel : ObservableObject, IDisposable
         }
         catch (Exception e)
         {
-            _modelManager.SendLog($"想定外のエラー：{e}", LogLevel.Error);
+            MyConsole.WriteLine($"想定外のエラー：{e}", MyConsole.Level.Error);
             return Array.Empty<MovieInfo>();
         }
     }
@@ -319,7 +329,7 @@ internal partial class MainWindowViewModel : ObservableObject, IDisposable
         }
         catch (Exception e)
         {
-            _modelManager.SendLog($"想定外のエラー：{e}", LogLevel.Error);
+            MyConsole.WriteLine($"想定外のエラー：{e}", MyConsole.Level.Error);
             return Array.Empty<MovieInfo>();
         }
     }
@@ -429,7 +439,7 @@ internal partial class MainWindowViewModel : ObservableObject, IDisposable
         }
         catch (Exception exception)
         {
-            _modelManager.SendLog(exception.Message, LogLevel.Error);
+            MyConsole.WriteLine(exception.Message, MyConsole.Level.Error);
         }
     }
 

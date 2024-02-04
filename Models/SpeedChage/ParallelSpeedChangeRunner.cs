@@ -1,12 +1,12 @@
 using MovieEditor.Models.Information;
+using MyCommonFunctions;
 using System.IO;
 
 namespace MovieEditor.Models.SpeedChange;
 
-internal class ParallelSpeedChangeRunner(ILogSendable logger) : IDisposable, IAnyProcess
+internal class ParallelSpeedChangeRunner : IDisposable, IAnyProcess
 {
     private static readonly object _parallelLock = new();
-    private readonly ILogSendable _logger = logger;
     private CancellationTokenSource? _cancelable = null;
     public event Action<int>? OnStartProcess;
     public event Action<int>? OnUpdateProgress;
@@ -63,19 +63,19 @@ internal class ParallelSpeedChangeRunner(ILogSendable logger) : IDisposable, IAn
                             // チェックリストを完了にする
                             checkList[movieInfo] = true;
                             OnUpdateProgress?.Invoke(finishedCount);
-                            _logger.SendLog($"{movieInfo.FileName} has finished ({fileSize} kb) ({finishedCount}/{allCount})");
+                            MyConsole.WriteLine($"{movieInfo.FileName} has finished ({fileSize} kb) ({finishedCount}/{allCount})", MyConsole.Level.Info);
                         }
                     });
             }
             catch (OperationCanceledException)
             {
-                _logger.SendLog("キャンセルされました");
+                MyConsole.WriteLine("キャンセルされました", MyConsole.Level.Info);
             }
         },
         _cancelable.Token);
 
         var processTime = DateTime.Now - startTime;
-        _logger.SendLog($"完了:{(long)processTime.TotalMilliseconds}ms");
+        MyConsole.WriteLine($"完了:{(long)processTime.TotalMilliseconds}ms", MyConsole.Level.Info);
         // 処理済みの動画データの配列を返す
         return checkList
             .Where(item => true == item.Value)

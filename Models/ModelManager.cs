@@ -9,35 +9,24 @@ namespace MovieEditor.Models;
 
 internal class ModelManager : IDisposable
 {
-    private readonly LogSender _logSender;
     private readonly JsonManager _jsonManager;
     private readonly ParallelCompressionRunner _parallelComp;
     private readonly ParallelExtractionRunner _parallelExtract;
     private readonly ParallelSpeedChangeRunner _speedChange;
 
-    public ILogServer LogServer => _logSender;
     public ISettingReferable SettingReferable => _jsonManager;
     public ParallelCompressionRunner ParallelComp => _parallelComp;
     public ParallelExtractionRunner ParallelExtract => _parallelExtract;
     public ParallelSpeedChangeRunner ParallelSpeedChange => _speedChange;
 
-    public ModelManager(Action<string> OnSendLogEventHandler)
+    public ModelManager()
     {
-        _logSender = new LogSender(OnSendLogEventHandler);
-        _jsonManager = new JsonManager(_logSender);
-        _parallelComp = new ParallelCompressionRunner(_logSender);
-        _parallelExtract = new ParallelExtractionRunner(_logSender);
-        _speedChange = new ParallelSpeedChangeRunner(_logSender);
+        _jsonManager = new JsonManager();
+        _parallelComp = new ParallelCompressionRunner();
+        _parallelExtract = new ParallelExtractionRunner();
+        _speedChange = new ParallelSpeedChangeRunner();
         // 前回使用したキャッシュがあれば削除する
         MovieInfo.DeleteThumbnailCaches();
-    }
-
-    public void SendLog(string message, LogLevel level = LogLevel.Info) => _logSender.SendLog(message, level);
-    public void SendLogFromAsync(string message, LogLevel level) => _logSender.SendLogFromAsync(message, level);
-
-    public void Debug(string message)
-    {
-        _logSender.SendLog(message, LogLevel.Debug);
     }
 
     public void Dispose()
