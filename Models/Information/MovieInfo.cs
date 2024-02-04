@@ -31,6 +31,8 @@ internal record MovieInfo
     public double FrameRate { get; init; } = 0;
     public string VideoCodec { get; init; } = string.Empty;
     public int VideoBitRate { get; init; } = 0;
+    public TimeSpan? TrimStart { get; set; } = null;
+    public TimeSpan? TrimEnd { get; set; } = null;
     public string FileSizeString => $"{FileSize} kb";
     public string FormattedDuration => Duration.ToString(@"hh\:mm\:ss\.ff");
     public string ScaleString => $"{Width} : {Height} ({AspectRatio.Width}:{AspectRatio.Height})";

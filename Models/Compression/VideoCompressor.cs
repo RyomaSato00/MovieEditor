@@ -14,6 +14,7 @@ internal class VideoCompressor
             UseShellExecute = false,
             CreateNoWindow = true
         };
+        Debug.WriteLine($"arg:{processInfo.Arguments}");
 
         using Process process = new() { StartInfo = processInfo };
         process.Start();
@@ -75,6 +76,16 @@ internal class VideoCompressor
         {
             argList.Add("-an");
         }
+        // 時間範囲指定開始時刻
+        if(movieInfo.TrimStart is not null)
+        {
+            argList.Add($"-ss {movieInfo.TrimStart:hh\\:mm\\:ss\\.fff}");
+        }
+        // 時間範囲指定終了時刻
+        if(movieInfo.TrimEnd is not null)
+        {
+            argList.Add($"-to {movieInfo.TrimEnd:hh\\:mm\\:ss\\.fff}");
+        }
 
         argList.Add($"\"{outputPath}\"");
 
@@ -90,4 +101,6 @@ internal record CompressionParameter
     public string VideoCodec { get; init; } = string.Empty;
     public bool IsAudioEraced { get; init; }
     public string Format { get; init; } = string.Empty;
+    public TimeSpan? TrimStart { get; init; } = null;
+    public TimeSpan? TrimEnd { get; init; } = null;
 }

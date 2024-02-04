@@ -175,7 +175,7 @@ internal partial class MainWindowViewModel : ObservableObject, IDisposable
         for (var index = MovieInfoList.Count - 1; index >= 0; index--)
         {
             // 処理済のファイルのみリストから削除する
-            if(false == sources.Contains(MovieInfoList[index].Info)) continue;
+            if (false == sources.Contains(MovieInfoList[index].Info)) continue;
             MovieInfoList.RemoveAt(index);
         }
     }
@@ -191,7 +191,7 @@ internal partial class MainWindowViewModel : ObservableObject, IDisposable
         {
             case ProcessModeEnum.VideoCompression:
                 _modelManager.SendLog("圧縮処理開始");
-                using(var viewModel = CreateProgressWindow(_modelManager.ParallelComp))
+                using (var viewModel = CreateProgressWindow(_modelManager.ParallelComp))
                 {
                     processedFiles = await RunCompression(sources);
                 }
@@ -199,7 +199,7 @@ internal partial class MainWindowViewModel : ObservableObject, IDisposable
 
             case ProcessModeEnum.AudioExtraction:
                 _modelManager.SendLog("音声抽出処理開始");
-                using(var viewModel = CreateProgressWindow(_modelManager.ParallelExtract))
+                using (var viewModel = CreateProgressWindow(_modelManager.ParallelExtract))
                 {
                     processedFiles = await RunExtraction(sources);
                 }
@@ -207,9 +207,9 @@ internal partial class MainWindowViewModel : ObservableObject, IDisposable
 
             case ProcessModeEnum.SpeedChange:
                 _modelManager.SendLog("再生速度変更開始");
-                using(var viewModel = CreateProgressWindow(_modelManager.ParallelSpeedChange))
+                using (var viewModel = CreateProgressWindow(_modelManager.ParallelSpeedChange))
                 {
-                    processedFiles = await RunSpeedChange(sources);   
+                    processedFiles = await RunSpeedChange(sources);
                 }
                 break;
 
@@ -354,9 +354,9 @@ internal partial class MainWindowViewModel : ObservableObject, IDisposable
     [RelayCommand]
     private void RemoveItem(string filePath)
     {
-        for(var index = 0; index < MovieInfoList.Count; index++)
+        for (var index = 0; index < MovieInfoList.Count; index++)
         {
-            if(filePath != MovieInfoList[index].Info.FilePath) continue;
+            if (filePath != MovieInfoList[index].Info.FilePath) continue;
             // 指定のファイルパスの項目を削除する
             MovieInfoList.RemoveAt(index);
             return;
@@ -368,7 +368,7 @@ internal partial class MainWindowViewModel : ObservableObject, IDisposable
     /// </summary>
     /// <param name="info"></param>
     [RelayCommand]
-    private async Task TrimByTime(MovieInfo info)
+    private async Task TrimByTime(string filePath)
     {
         var (window, viewModel) = CreateTimeTrimWindow();
         try
@@ -376,15 +376,31 @@ internal partial class MainWindowViewModel : ObservableObject, IDisposable
             var (trimStart, trimEnd) = await viewModel.ResultWaitable;
             window.Close();
             System.Diagnostics.Debug.WriteLine($"start:{trimStart}, end:{trimEnd}");
+
+            foreach (var item in MovieInfoList)
+            {
+                if (filePath != item.Info.FilePath) continue;
+
+                if (trimStart is not null)
+                {
+                    item.Info.TrimStart = TimeSpan.FromSeconds(trimStart.Value);
+                }
+                if (trimEnd is not null)
+                {
+                    item.Info.TrimEnd = TimeSpan.FromSeconds(trimEnd.Value);
+                }
+                item.UpdateTrimPeriod();
+            }
         }
-        catch(TaskCanceledException)
+        catch (TaskCanceledException)
         {
 
         }
         System.Diagnostics.Debug.WriteLine("時間範囲指定終了");
     }
 
-    [RelayCommand] private void Test()
+    [RelayCommand]
+    private void Test()
     {
 
     }
@@ -443,15 +459,12 @@ internal partial class SourceListItemElement(MovieInfo movieInfo, Uri thumbnailU
     [ObservableProperty] private bool _isChecked = true;
     public BitmapImage Thumbnail { get; init; } = new BitmapImage(thumbnailUri);
     public MovieInfo Info { get; init; } = movieInfo;
-    public TimeSpan? TrimStart { get; set; } = null;
-    public TimeSpan? TrimEnd { get; set; } = null;
-    public string TrimTime 
+    [ObservableProperty] private string _trimPeriod = $"{TimeSpan.Zero:mm\\:ss\\.ff}-{movieInfo.Duration:mm\\:ss\\.ff}";
+
+    public void UpdateTrimPeriod()
     {
-        get
-        {
-            var start = TrimStart ?? TimeSpan.Zero;
-            var end = TrimEnd ?? Info.Duration;
-            return $"{start:mm\\:ss\\.ff}-{end:mm\\:ss\\.ff}";
-        }
+        var start = Info.TrimStart ?? TimeSpan.Zero;
+        var end = Info.TrimEnd ?? Info.Duration;
+        TrimPeriod = $"{start:mm\\:ss\\.ff}-{end:mm\\:ss\\.ff}";
     }
 }

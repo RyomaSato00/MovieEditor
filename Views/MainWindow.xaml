@@ -38,7 +38,7 @@
                 <TextBlock Grid.Column="6" Text="{Binding Info.VideoBitRateString}" />
                 <TextBlock Grid.Column="7" Text="{Binding Info.VideoCodec}" />
                 <TextBlock Grid.Column="8" Text="{Binding Info.FormattedDuration}" />
-                <TextBlock Grid.Column="9" Text="{Binding TrimTime}" />
+                <TextBlock Grid.Column="9" Text="{Binding TrimPeriod}" />
             </Grid>
         </DataTemplate>
         
@@ -68,7 +68,7 @@
                 <TextBlock Grid.Column="6" Text="{Binding Info.VideoBitRateString}" />
                 <TextBlock Grid.Column="7" Text="{Binding Info.VideoCodec}" />
                 <TextBlock Grid.Column="8" Text="{Binding Info.FormattedDuration}" />
-                <TextBlock Grid.Column="9" Text="{Binding TrimTime}" />
+                <TextBlock Grid.Column="9" Text="{Binding TrimPeriod}" />
             </Grid>
         </DataTemplate>
     </Window.Resources>
@@ -111,7 +111,7 @@
                                 <!--通常はSourceListItemElementからBinding先を探そうとするため、Tag(=MainWindowViewModel)から探させるようにする-->
                                 <MenuItem Header="時間範囲指定" 
                                     Command="{Binding PlacementTarget.Tag.TrimByTimeCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
-                                    CommandParameter="{Binding Info}" />
+                                    CommandParameter="{Binding Info.FilePath}" />
                             </ContextMenu>
                         </Setter.Value>
                     </Setter>
