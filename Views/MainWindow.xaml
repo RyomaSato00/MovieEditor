@@ -19,26 +19,26 @@
                     <ColumnDefinition Width="70" />
                     <ColumnDefinition Width="50" />
                     <ColumnDefinition Width="250" />
+                    <ColumnDefinition Width="140" />
                     <ColumnDefinition Width="80" />
                     <ColumnDefinition Width="80" />
                     <ColumnDefinition Width="150" />
                     <ColumnDefinition Width="100" />
                     <ColumnDefinition Width="80" />
                     <ColumnDefinition Width="100" />
-                    <ColumnDefinition Width="120" />
                 </Grid.ColumnDefinitions>
                 <Button Grid.Column="0" Content="削除"
                     Command="{Binding DataContext.RemoveItemCommand, RelativeSource={RelativeSource AncestorType=ListView}}" 
                     CommandParameter="{Binding Info.FilePath}" />
                 <CheckBox Grid.Column="1" IsChecked="{Binding IsChecked}" />
                 <TextBlock Grid.Column="2" Text="{Binding Info.FileName}" />
-                <TextBlock Grid.Column="3" Text="{Binding Info.FileSizeString}" />
+                <TextBlock Grid.Column="3" Text="{Binding TrimPeriod}" />
                 <TextBlock Grid.Column="4" Text="{Binding Info.FrameRateString}" />
-                <TextBlock Grid.Column="5" Text="{Binding Info.ScaleString}" />
-                <TextBlock Grid.Column="6" Text="{Binding Info.VideoBitRateString}" />
-                <TextBlock Grid.Column="7" Text="{Binding Info.VideoCodec}" />
-                <TextBlock Grid.Column="8" Text="{Binding Info.FormattedDuration}" />
-                <TextBlock Grid.Column="9" Text="{Binding TrimPeriod}" />
+                <TextBlock Grid.Column="5" Text="{Binding Info.FileSizeString}" />
+                <TextBlock Grid.Column="6" Text="{Binding Info.ScaleString}" />
+                <TextBlock Grid.Column="7" Text="{Binding Info.VideoBitRateString}" />
+                <TextBlock Grid.Column="8" Text="{Binding Info.VideoCodec}" />
+                <TextBlock Grid.Column="9" Text="{Binding Info.FormattedDuration}" />
             </Grid>
         </DataTemplate>
         
@@ -49,26 +49,26 @@
                     <ColumnDefinition Width="70" />
                     <ColumnDefinition Width="50" />
                     <ColumnDefinition Width="250" />
+                    <ColumnDefinition Width="140" />
                     <ColumnDefinition Width="80" />
                     <ColumnDefinition Width="80" />
                     <ColumnDefinition Width="150" />
                     <ColumnDefinition Width="100" />
                     <ColumnDefinition Width="80" />
                     <ColumnDefinition Width="100" />
-                    <ColumnDefinition Width="120" />
                 </Grid.ColumnDefinitions>
                 <Button Grid.Column="0" Content="削除"
                     Command="{Binding DataContext.RemoveItemCommand, RelativeSource={RelativeSource AncestorType=ListView}}" 
                     CommandParameter="{Binding Info.FilePath}" />
                 <CheckBox Grid.Column="1" IsChecked="{Binding IsChecked}" />
                 <Image Grid.Column="2" Source="{Binding Thumbnail}" Height="100" />
-                <TextBlock Grid.Column="3" Text="{Binding Info.FileSizeString}" />
+                <TextBlock Grid.Column="3" Text="{Binding TrimPeriod}" />
                 <TextBlock Grid.Column="4" Text="{Binding Info.FrameRateString}" />
-                <TextBlock Grid.Column="5" Text="{Binding Info.ScaleString}" />
-                <TextBlock Grid.Column="6" Text="{Binding Info.VideoBitRateString}" />
-                <TextBlock Grid.Column="7" Text="{Binding Info.VideoCodec}" />
-                <TextBlock Grid.Column="8" Text="{Binding Info.FormattedDuration}" />
-                <TextBlock Grid.Column="9" Text="{Binding TrimPeriod}" />
+                <TextBlock Grid.Column="5" Text="{Binding Info.FileSizeString}" />
+                <TextBlock Grid.Column="6" Text="{Binding Info.ScaleString}" />
+                <TextBlock Grid.Column="7" Text="{Binding Info.VideoBitRateString}" />
+                <TextBlock Grid.Column="8" Text="{Binding Info.VideoCodec}" />
+                <TextBlock Grid.Column="9" Text="{Binding Info.FormattedDuration}" />
             </Grid>
         </DataTemplate>
     </Window.Resources>
@@ -138,14 +138,14 @@
                         </GridViewColumn.HeaderTemplate>
                     </GridViewColumn>
                     <GridViewColumn Width="250" Header="ファイル名" />
-					<GridViewColumn Width="80" Header="サイズ"/>
+                    <GridViewColumn Width="140" Header="時間範囲指定" />
 					<GridViewColumn Width="80" Header="フレーム率" />
+					<GridViewColumn Width="80" Header="サイズ"/>
 					<GridViewColumn Width="150" Header="解像度(W : H)" />
                     <GridViewColumn Width="100" Header="ビットレート" />
 					<GridViewColumn Width="80" Header="コーデック" />
-					<GridViewColumn Width="100" Header="再生時間" />
                     <!--DataTemplateで定義しているよりもWidthを広くすることで要素が列からはみ出なくなる（？）-->
-                    <GridViewColumn Width="140" Header="トリミング" />
+					<GridViewColumn Width="125" Header="再生時間" />
                 </GridView>				
 			</ListView.View>
 		</ListView>
