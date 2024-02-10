@@ -12,7 +12,6 @@ using CommunityToolkit.Mvvm.Input;
 using MovieEditor.Models;
 using MovieEditor.Models.Compression;
 using MovieEditor.Models.Information;
-using MovieEditor.Models.Json;
 using MovieEditor.Views;
 using MyCommonFunctions;
 using Reactive.Bindings;
@@ -45,13 +44,19 @@ internal partial class MainWindowViewModel : ObservableObject, IDisposable
 
     // ***設定値***
     [ObservableProperty] private MainSettings _mainSettings;
-    [ObservableProperty] private string _outputFolderPath;
+    // 出力フォルダだけはダイアログボックスの取得やドラッグドロップによる取得に対応させるため、
+    // 個別にバインドを用意する
+    [ObservableProperty] private string _outputDirectory;
 
     [ObservableProperty] private string _logHistory = string.Empty;
 
     public MainWindowViewModel()
     {
         MyConsole.OnWrite += messages => LogHistory = messages;
+        // 設定値反映
+        MainSettings = SettingManager.LoadSetting();
+        OutputDirectory = MainSettings.OutputFolder;
+        MyConsole.UseDebugLog = MainSettings.UseDebugLog;
         _modelManager = new ModelManager();
         _reactiveSourceList = MovieInfoList.ToReadOnlyReactiveCollection();
 
@@ -100,20 +105,15 @@ internal partial class MainWindowViewModel : ObservableObject, IDisposable
             RemoveProcessFinishedFiles(processedFiles);
         });
 
-        // 設定値反映
-        MainSettings = _modelManager.SettingReferable.MainSettings_;
-        OutputFolderPath = _modelManager.SettingReferable.MainSettings_.OutputFolder;
     }
 
     public void Dispose()
     {
-        // 設定値保存
-        _modelManager.SettingReferable.MainSettings_.OutputFolder = OutputFolderPath;
-        // _modelManager.SettingReferable.MainSettings_ = MainSettings;
-
-        // ReactivePropertyのSubscribeを解除する
         _disposables.Dispose();
         _modelManager.Dispose();
+        // 設定値保存
+        MainSettings.OutputFolder = OutputDirectory;
+        SettingManager.SaveSetting(MainSettings);
     }
 
     /// <summary>
@@ -273,7 +273,7 @@ internal partial class MainWindowViewModel : ObservableObject, IDisposable
             var processedFiles = await _modelManager.ParallelComp.Run
             (
                 sources,
-                OutputFolderPath,
+                OutputDirectory,
                 MainSettings.AttachedNameTag,
                 parameter
             );
@@ -298,7 +298,7 @@ internal partial class MainWindowViewModel : ObservableObject, IDisposable
             var processedFiles = await _modelManager.ParallelExtract.Run
             (
                 sources,
-                OutputFolderPath,
+                OutputDirectory,
                 MainSettings.AttachedNameTag
             );
             return processedFiles;
@@ -321,7 +321,7 @@ internal partial class MainWindowViewModel : ObservableObject, IDisposable
             var processedFiles = await _modelManager.ParallelSpeedChange.Run
             (
                 sources,
-                OutputFolderPath,
+                OutputDirectory,
                 MainSettings.AttachedNameTag,
                 MainSettings.Speed.SpeedRate
             );
@@ -357,7 +357,7 @@ internal partial class MainWindowViewModel : ObservableObject, IDisposable
         string? directoryPath = _dialogHandler.GetDirectoryFromDialog();
         if (null != directoryPath)
         {
-            OutputFolderPath = directoryPath;
+            OutputDirectory = directoryPath;
         }
     }
 
@@ -460,7 +460,7 @@ internal partial class MainWindowViewModel : ObservableObject, IDisposable
     public void OutDirectory_OnDrop(string directoryPath)
     {
         if (false == Directory.Exists(directoryPath)) return;
-        OutputFolderPath = directoryPath;
+        OutputDirectory = directoryPath;
     }
 }
 

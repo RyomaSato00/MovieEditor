@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using MovieEditor.Models.Information;
+using MyCommonFunctions;
 
 namespace MovieEditor.Models.AudioExtraction;
 
@@ -13,6 +14,7 @@ internal class AudioExtractor
             UseShellExecute = false,
             CreateNoWindow = true
         };
+        MyConsole.WriteLine($"arg:{processInfo.Arguments}");
 
         using Process process = new() {StartInfo = processInfo};
         process.Start();

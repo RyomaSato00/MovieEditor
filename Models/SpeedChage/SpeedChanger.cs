@@ -1,4 +1,5 @@
 using MovieEditor.Models.Information;
+using MyCommonFunctions;
 using System.Diagnostics;
 
 namespace MovieEditor.Models.SpeedChange;
@@ -13,6 +14,7 @@ internal class SpeedChanger
             UseShellExecute = false,
             CreateNoWindow = true
         };
+        MyConsole.WriteLine($"arg:{processInfo.Arguments}");
 
         using var process = new Process() { StartInfo = processInfo };
         process.Start();

@@ -1,4 +1,33 @@
-namespace MovieEditor.Models.Json;
+
+using Newtonsoft.Json;
+using System.IO;
+
+namespace MovieEditor;
+
+internal static class SettingManager
+{
+    public static readonly string SettingFilePath = "MainSettings.json";
+    public static MainSettings LoadSetting()
+    {
+        try
+        {
+            var jsonContent = File.ReadAllText(SettingFilePath);
+            var setting = JsonConvert.DeserializeObject<MainSettings>(jsonContent);
+            if(setting is null) return new MainSettings();
+            else return setting;
+        }
+        catch(Exception)
+        {
+            return new MainSettings();
+        }
+    }
+
+    public static void SaveSetting(MainSettings setting)
+    {
+        var jsonContent = JsonConvert.SerializeObject(setting, Formatting.Indented);
+        File.WriteAllText(SettingFilePath, jsonContent);
+    }
+}
 
 internal class MainSettings
 {
@@ -8,6 +37,7 @@ internal class MainSettings
     public bool IsThumbnailVisible { get; set; } = false;
     public CompressionCondition Comp { get; set; } = new();
     public SpeedCondition Speed { get; set; } = new();
+    public bool UseDebugLog { get; set; } = false;
 }
 
 internal class CompressionCondition

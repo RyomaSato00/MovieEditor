@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using FFMpegCore;
 using MovieEditor.Models.Information;
+using MyCommonFunctions;
 
 namespace MovieEditor.Models.Compression;
 
@@ -15,6 +16,7 @@ internal class VideoCompressor
             CreateNoWindow = true
         };
         Debug.WriteLine($"arg:{processInfo.Arguments}");
+        MyConsole.WriteLine($"arg:{processInfo.Arguments}");
 
         using Process process = new() { StartInfo = processInfo };
         process.Start();
