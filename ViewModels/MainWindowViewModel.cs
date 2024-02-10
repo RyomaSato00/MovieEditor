@@ -147,21 +147,21 @@ internal partial class MainWindowViewModel : ObservableObject, IDisposable
                 }
                 catch (ArgumentOutOfRangeException e)
                 {
-                    lock(_parallelLock)
+                    lock (_parallelLock)
                     {
                         MyConsole.WriteLine(e.Message, MyConsole.Level.Warning);
                     }
                 }
                 catch (FFMpegCore.Exceptions.FFMpegException)
                 {
-                    lock(_parallelLock)
+                    lock (_parallelLock)
                     {
                         MyConsole.WriteLine($"ファイルが壊れている可能性があります。ファイルを読み込めません：{filePath}", MyConsole.Level.Warning);
                     }
                 }
                 catch (Exception e)
                 {
-                    lock(_parallelLock)
+                    lock (_parallelLock)
                     {
                         MyConsole.WriteLine($"想定外のエラー：{e.Message}", MyConsole.Level.Error);
                     }
@@ -391,14 +391,8 @@ internal partial class MainWindowViewModel : ObservableObject, IDisposable
             {
                 if (filePath != item.Info.FilePath) continue;
 
-                if (trimStart is not null)
-                {
-                    item.Info.TrimStart = TimeSpan.FromSeconds(trimStart.Value);
-                }
-                if (trimEnd is not null)
-                {
-                    item.Info.TrimEnd = TimeSpan.FromSeconds(trimEnd.Value);
-                }
+                item.Info.TrimStart = trimStart;
+                item.Info.TrimEnd = trimEnd;
                 item.UpdateTrimPeriod();
             }
         }
@@ -469,12 +463,15 @@ internal partial class SourceListItemElement(MovieInfo movieInfo, Uri thumbnailU
     [ObservableProperty] private bool _isChecked = true;
     public BitmapImage Thumbnail { get; init; } = new BitmapImage(thumbnailUri);
     public MovieInfo Info { get; init; } = movieInfo;
-    [ObservableProperty] private string _trimPeriod = $"{TimeSpan.Zero:mm\\:ss\\.ff}-{movieInfo.Duration:mm\\:ss\\.ff}";
+    [ObservableProperty] private string _trimPeriod = $"{TimeSpan.Zero:mm\\:ss\\.ff}-E";
 
     public void UpdateTrimPeriod()
     {
         var start = Info.TrimStart ?? TimeSpan.Zero;
-        var end = Info.TrimEnd ?? Info.Duration;
-        TrimPeriod = $"{start:mm\\:ss\\.ff}-{end:mm\\:ss\\.ff}";
+        var end = Info.TrimEnd;
+        // 時間範囲終了時刻を指定していないときは、終了時刻にEと表示する
+        string endToken = "E";
+        if (end is TimeSpan endTime) endToken = endTime.ToString(@"mm\:ss\.ff");
+        TrimPeriod = $"{start:mm\\:ss\\.ff}-{endToken}";
     }
 }
