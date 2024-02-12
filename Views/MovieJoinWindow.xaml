@@ -1,0 +1,176 @@
+<Window x:Class="MovieEditor.Views.MovieJoinWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:MovieEditor"
+        xmlns:ui="http://schemas.modernwpf.com/2019"
+        xmlns:behavior="clr-namespace:MovieEditor.Views.Behavior"
+        mc:Ignorable="d"
+        Title="動画結合" Height="800" Width="850"
+        ui:WindowHelper.UseModernWindowStyle="True">
+
+    <Window.Resources>
+        <!--DefaultListViewItemStyleをBasedOnするとGridViewColumnの中でDisplayMemberBindingにより各要素をBindingすることができない。
+        Templateを定義して、ItemTemplateとして反映させる-->
+        <!--サムネイルを表示せずにファイル名を表示する用-->
+        <DataTemplate x:Key="ThumbnailHidden">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="70" />
+                    <ColumnDefinition Width="50" />
+                    <ColumnDefinition Width="250" />
+                    <ColumnDefinition Width="140" />
+                    <ColumnDefinition Width="80" />
+                    <ColumnDefinition Width="80" />
+                    <ColumnDefinition Width="150" />
+                    <ColumnDefinition Width="100" />
+                    <ColumnDefinition Width="80" />
+                    <ColumnDefinition Width="100" />
+                </Grid.ColumnDefinitions>
+                <Button Grid.Column="0" Content="削除"
+                    Command="{Binding DataContext.RemoveItemCommand, RelativeSource={RelativeSource AncestorType=ListView}}" 
+                    CommandParameter="{Binding Info.FilePath}" />
+                <CheckBox Grid.Column="1" IsChecked="{Binding IsChecked}" />
+                <TextBlock Grid.Column="2" Text="{Binding Info.FileName}" />
+                <TextBlock Grid.Column="3" Text="{Binding TrimPeriod}" />
+                <TextBlock Grid.Column="4" Text="{Binding Info.FrameRateString}" />
+                <TextBlock Grid.Column="5" Text="{Binding Info.FileSizeString}" />
+                <TextBlock Grid.Column="6" Text="{Binding Info.ScaleString}" />
+                <TextBlock Grid.Column="7" Text="{Binding Info.VideoBitRateString}" />
+                <TextBlock Grid.Column="8" Text="{Binding Info.VideoCodec}" />
+                <TextBlock Grid.Column="9" Text="{Binding Info.FormattedDuration}" />
+            </Grid>
+        </DataTemplate>
+        
+        <!--ファイル名の代わりにサムネイルを表示する用-->
+        <DataTemplate x:Key="ThumbnailVisible">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="70" />
+                    <ColumnDefinition Width="50" />
+                    <ColumnDefinition Width="250" />
+                    <ColumnDefinition Width="140" />
+                    <ColumnDefinition Width="80" />
+                    <ColumnDefinition Width="80" />
+                    <ColumnDefinition Width="150" />
+                    <ColumnDefinition Width="100" />
+                    <ColumnDefinition Width="80" />
+                    <ColumnDefinition Width="100" />
+                </Grid.ColumnDefinitions>
+                <Button Grid.Column="0" Content="削除"
+                    Command="{Binding DataContext.RemoveItemCommand, RelativeSource={RelativeSource AncestorType=ListView}}" 
+                    CommandParameter="{Binding Info.FilePath}" />
+                <CheckBox Grid.Column="1" IsChecked="{Binding IsChecked}" />
+                <Image Grid.Column="2" Source="{Binding Thumbnail}" Height="100" />
+                <TextBlock Grid.Column="3" Text="{Binding TrimPeriod}" />
+                <TextBlock Grid.Column="4" Text="{Binding Info.FrameRateString}" />
+                <TextBlock Grid.Column="5" Text="{Binding Info.FileSizeString}" />
+                <TextBlock Grid.Column="6" Text="{Binding Info.ScaleString}" />
+                <TextBlock Grid.Column="7" Text="{Binding Info.VideoBitRateString}" />
+                <TextBlock Grid.Column="8" Text="{Binding Info.VideoCodec}" />
+                <TextBlock Grid.Column="9" Text="{Binding Info.FormattedDuration}" />
+            </Grid>
+        </DataTemplate>
+    </Window.Resources>
+
+    <ui:SimpleStackPanel Orientation="Vertical" >
+
+        <ui:SimpleStackPanel Orientation="Horizontal" HorizontalAlignment="Left" 
+            Margin="8"
+        >
+            <Label Content="ファイル数：" VerticalContentAlignment="Center" />
+            <Label Content="{Binding MovieInfoList.Count}" VerticalContentAlignment="Center" Width="60" />
+            <Label Content="サムネイル：" VerticalContentAlignment="Center" />
+            <ui:ToggleSwitch Toggled="SourceList_OnTemplateToggled"
+                IsOn="{Binding IsThumbnailVisible}" OffContent="非表示" OnContent="表示" />
+        </ui:SimpleStackPanel>
+
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="780" />
+                <ColumnDefinition Width="70" />
+            </Grid.ColumnDefinitions>
+
+            <ListView Name="SourceList" Margin="10" Height="640" Width="750"
+                ScrollViewer.VerticalScrollBarVisibility="Visible"
+                behavior:ListViewHorizontalScrollBehavior.ShiftHorizontalScroll="True"
+                ItemsSource="{Binding MovieInfoList}"
+                ItemTemplate="{StaticResource ThumbnailHidden}"
+                SelectedIndex="{Binding SelectedIndex}"
+                HorizontalAlignment="Center" Grid.Column="0"
+                >
+
+                <ListView.ItemContainerStyle>
+                    <!--各項目をダブルクリックしたときのイベントハンドラを設定したい
+                        ただし、Styleを定義するとuiデザインが一部デフォルトに上書きされてしまうため、
+                        BasedOnでModernWpfのDefaultListViewItemStyleを参照する-->
+                    <Style TargetType="ListViewItem" BasedOn="{StaticResource DefaultListViewItemStyle}" >
+                        <EventSetter Event="MouseDoubleClick" Handler="SourceList_OnItemDoubleClicked" />
+
+                        <!--右クリックメニューを定義する-->
+                        <!--ContextMenuからMainWindowViewModelに直接アクセスできないため、Tagプロパティを介して渡す-->
+                        <Setter Property="Tag" Value="{Binding DataContext, RelativeSource={RelativeSource AncestorType=ListView}}" />
+                        <Setter Property="ContextMenu" >
+                            <Setter.Value>
+                                <ContextMenu >
+                                    <!--通常はSourceListItemElementからBinding先を探そうとするため、Tag(=MainWindowViewModel)から探させるようにする-->
+                                    <MenuItem Header="時間範囲指定" 
+                                        Command="{Binding PlacementTarget.Tag.TrimByTimeCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                        CommandParameter="{Binding Info.FilePath}" />
+                                </ContextMenu>
+                            </Setter.Value>
+                        </Setter>
+                    </Style>
+                </ListView.ItemContainerStyle>
+
+                <ListView.View>
+                    <GridView>
+                        <GridViewColumn Width="70" />
+                        <GridViewColumn Width="50">
+                            <!--GridViewColumn.Headerから直接CheckBoxを指定するとイベントハンドラの指定ができないため
+                                テンプレートを作ることでチェック時のイベントを取り出せるようにする-->
+                            <GridViewColumn.HeaderTemplate>
+                                <DataTemplate>
+                                    <!--MainWindowViewModelのプロパティIsAllCheckedをバインドさせたいが、
+                                        ItemsSourceにMovieInfoListをバインドさせているため、
+                                        そのままIsAllCheckedをバインドすると、MovieInfoListの要素からIsAllCheckedプロパティを探してしまう
+                                        MainWindowViewModelからIsAllCheckedを参照するようにする-->
+                                    <CheckBox
+                                        IsChecked="{Binding DataContext.IsAllChecked, RelativeSource={RelativeSource AncestorType=ListView}}"
+                                        Checked="SourceListHeader0_OnChecked" 
+                                        Unchecked="SourceListHeader0_OnUnchecked" />
+                                </DataTemplate>
+                            </GridViewColumn.HeaderTemplate>
+                        </GridViewColumn>
+                        <GridViewColumn Width="250" Header="ファイル名" />
+                        <GridViewColumn Width="140" Header="時間範囲指定" />
+                        <GridViewColumn Width="80" Header="フレーム率" />
+                        <GridViewColumn Width="80" Header="サイズ"/>
+                        <GridViewColumn Width="150" Header="解像度(W : H)" />
+                        <GridViewColumn Width="100" Header="ビットレート" />
+                        <GridViewColumn Width="80" Header="コーデック" />
+                        <!--DataTemplateで定義しているよりもWidthを広くすることで要素が列からはみ出なくなる（？）-->
+                        <GridViewColumn Width="125" Header="再生時間" />
+                    </GridView>				
+                </ListView.View>
+            </ListView>
+
+            <ui:SimpleStackPanel Orientation="Vertical" VerticalAlignment="Center" HorizontalAlignment="Center"
+                Spacing="10" Grid.Column="1"
+            >
+                <!--UpCommandの引数にリスト上で選択されているインデックスを渡す。複数選択時は最初に選択されたインデックスを渡す。何も選択していないときは-1を渡す-->
+                <Button Content="上" Command="{Binding UpCommand}" CommandParameter="{Binding ElementName=SourceList, Path=SelectedIndex}" />
+                <!--UpCommandの引数にリスト上で選択されているインデックスを渡す。複数選択時は最初に選択されたインデックスを渡す。何も選択していないときは-1を渡す-->
+                <Button Content="下" Command="{Binding DownCommand}" CommandParameter="{Binding ElementName=SourceList, Path=SelectedIndex}" />
+            </ui:SimpleStackPanel>
+
+        </Grid>
+        <Button Content="決定" HorizontalAlignment="Right" Margin="8"
+            Style="{StaticResource AccentButtonStyle}"
+            Command="{Binding DecideCommand}"
+            Width="80" FontSize="18" FontWeight="Bold"
+         />
+    </ui:SimpleStackPanel>
+
+</Window>

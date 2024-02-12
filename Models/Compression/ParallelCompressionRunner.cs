@@ -24,7 +24,7 @@ internal class ParallelCompressionRunner : IDisposable, IAnyProcess
     (
         MovieInfo[] sources,
         string outputFolder,
-        string attachedNameTag,
+        string? attachedNameTag,
         CompressionParameter parameter
     )
     {
@@ -94,17 +94,22 @@ internal class ParallelCompressionRunner : IDisposable, IAnyProcess
     (
         string inputPath,
         string outputFolder,
-        string attachedNameTag,
+        string? attachedNameTag,
         string format
     )
     {
         var purefileName = Path.GetFileNameWithoutExtension(inputPath);
-        // var extension = Path.GetExtension(inputPath);
-        return Path.Combine
-        (
-            outputFolder,
-            $"{purefileName}_{attachedNameTag}.{format}"
-        );
+
+        string fileName;
+        if (attachedNameTag is null)
+        {
+            fileName = $"{purefileName}.{format}";
+        }
+        else
+        {
+            fileName = $"{purefileName}_{attachedNameTag}.{format}";
+        }
+        return Path.Combine(outputFolder, fileName);
     }
 
     private static Dictionary<MovieInfo, bool> ToCheckList(MovieInfo[] sources)

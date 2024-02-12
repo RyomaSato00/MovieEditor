@@ -1,6 +1,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using MovieEditor.Models;
+using MyCommonFunctions;
 
 namespace MovieEditor.ViewModels;
 
@@ -46,6 +47,7 @@ internal partial class ProgressWindowViewModel : ObservableObject, IDisposable
     [RelayCommand] private void Cancel()
     {
         _anyProcess.Cancel();
+        MyConsole.WriteLine("キャンセルしています...", MyConsole.Level.Info);
     }
 
 }

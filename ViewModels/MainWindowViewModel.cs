@@ -174,6 +174,7 @@ internal partial class MainWindowViewModel : ObservableObject, IDisposable
         {
             MovieInfoList.Add(new SourceListItemElement(info, thumbnailUri));
         }
+
     }
 
     /// <summary>
@@ -201,7 +202,7 @@ internal partial class MainWindowViewModel : ObservableObject, IDisposable
         {
             case ProcessModeEnum.VideoCompression:
                 MyConsole.WriteLine("圧縮処理開始", MyConsole.Level.Info);
-                using (var viewModel = CreateProgressWindow(_modelManager.ParallelComp))
+                using (var viewModel = SubWindowCreator.CreateProgressWindow(_modelManager.ParallelComp))
                 {
                     processedFiles = await RunCompression(sources);
                 }
@@ -209,7 +210,7 @@ internal partial class MainWindowViewModel : ObservableObject, IDisposable
 
             case ProcessModeEnum.AudioExtraction:
                 MyConsole.WriteLine("音声抽出処理開始", MyConsole.Level.Info);
-                using (var viewModel = CreateProgressWindow(_modelManager.ParallelExtract))
+                using (var viewModel = SubWindowCreator.CreateProgressWindow(_modelManager.ParallelExtract))
                 {
                     processedFiles = await RunExtraction(sources);
                 }
@@ -217,7 +218,7 @@ internal partial class MainWindowViewModel : ObservableObject, IDisposable
 
             case ProcessModeEnum.SpeedChange:
                 MyConsole.WriteLine("再生速度変更開始", MyConsole.Level.Info);
-                using (var viewModel = CreateProgressWindow(_modelManager.ParallelSpeedChange))
+                using (var viewModel = SubWindowCreator.CreateProgressWindow(_modelManager.ParallelSpeedChange))
                 {
                     processedFiles = await RunSpeedChange(sources);
                 }
@@ -227,30 +228,6 @@ internal partial class MainWindowViewModel : ObservableObject, IDisposable
                 break;
         }
         return processedFiles;
-    }
-
-    /// <summary>
-    /// 進捗表示用のサブウィンドウを表示する
-    /// </summary>
-    /// <param name="process"></param>
-    /// <returns></returns>
-    private static ProgressWindowViewModel CreateProgressWindow(IAnyProcess process)
-    {
-        var progressWindow = new ProgressWindow();
-        var progressWindowViewModel = new ProgressWindowViewModel(process, progressWindow.Close);
-        progressWindow.DataContext = progressWindowViewModel;
-        progressWindow.Show();
-        return progressWindowViewModel;
-    }
-
-    private static (TimeTrimWindow, TimeTrimWindowViewModel) CreateTimeTrimWindow()
-    {
-        var timeTrimWindow = new TimeTrimWindow();
-        var timeTrimWindowViewModel = new TimeTrimWindowViewModel();
-        timeTrimWindow.DataContext = timeTrimWindowViewModel;
-        timeTrimWindow.Closing += (_, _) => timeTrimWindowViewModel.Dispose();
-        timeTrimWindow.Show();
-        return (timeTrimWindow, timeTrimWindowViewModel);
     }
 
     /// <summary>
@@ -380,7 +357,7 @@ internal partial class MainWindowViewModel : ObservableObject, IDisposable
     [RelayCommand]
     private async Task TrimByTime(string filePath)
     {
-        var (window, viewModel) = CreateTimeTrimWindow();
+        var (window, viewModel) = SubWindowCreator.CreateTimeTrimWindow();
         try
         {
             var (trimStart, trimEnd) = await viewModel.ResultWaitable;
@@ -401,6 +378,29 @@ internal partial class MainWindowViewModel : ObservableObject, IDisposable
 
         }
         System.Diagnostics.Debug.WriteLine("時間範囲指定終了");
+    }
+
+    [RelayCommand]
+    private async Task JoinMovies()
+    {
+        var (window, viewModel) = SubWindowCreator.CreateMovieJoinWindow();
+        var targets = MovieInfoList.Where(item => item.IsChecked).Select(item => item.Clone()).ToArray();
+        viewModel.AddMovies(targets);
+        viewModel.IsThumbnailVisible = MainSettings.IsThumbnailVisible;
+        try
+        {
+            var (joinedVideo, usedFiles) = await viewModel.JoinWaitable;
+            window.Close();
+
+            // 結合に使用したファイルはリストから削除する
+            RemoveProcessFinishedFiles(usedFiles);
+            // 結合後のファイルをリストに追加する
+            await GiveSourceFiles([joinedVideo]);
+        }
+        catch(TaskCanceledException)
+        {
+
+        }
     }
 
     [RelayCommand]
@@ -461,6 +461,7 @@ internal partial class MainWindowViewModel : ObservableObject, IDisposable
 internal partial class SourceListItemElement(MovieInfo movieInfo, Uri thumbnailUri) : ObservableObject
 {
     [ObservableProperty] private bool _isChecked = true;
+    public Uri ThumbnailUri { get; init; } = thumbnailUri;
     public BitmapImage Thumbnail { get; init; } = new BitmapImage(thumbnailUri);
     public MovieInfo Info { get; init; } = movieInfo;
     [ObservableProperty] private string _trimPeriod = $"{TimeSpan.Zero:mm\\:ss\\.ff}-E";
@@ -473,5 +474,16 @@ internal partial class SourceListItemElement(MovieInfo movieInfo, Uri thumbnailU
         string endToken = "E";
         if (end is TimeSpan endTime) endToken = endTime.ToString(@"mm\:ss\.ff");
         TrimPeriod = $"{start:mm\\:ss\\.ff}-{endToken}";
+    }
+
+    /// <summary>
+    /// このオブジェクトのコピーを返す
+    /// movie infoとthumbnail uriはソースと同じ参照を持つ
+    /// </summary>
+    /// <param name="source"></param>
+    /// <returns></returns>
+    public SourceListItemElement Clone()
+    {
+        return new SourceListItemElement(Info, ThumbnailUri);
     }
 }

@@ -20,9 +20,9 @@ internal class VideoCompressor
 
         using Process process = new() { StartInfo = processInfo };
         process.Start();
-        // proces.WaitForExit();
-        while (false == process.HasExited
-        && false == cancelToken.IsCancellationRequested) { }
+        process.WaitForExit();
+        // while (false == process.HasExited
+        // && false == cancelToken.IsCancellationRequested) { }
     }
 
     private static string MakeArguments(MovieInfo movieInfo, string outputPath, CompressionParameter parameter)
@@ -97,12 +97,10 @@ internal class VideoCompressor
 
 internal record CompressionParameter
 {
-    public int ScaleWidth { get; init; }
-    public int ScaleHeight { get; init; }
-    public double FrameRate { get; init; }
+    public int ScaleWidth { get; init; } = -1;
+    public int ScaleHeight { get; init; } = -1;
+    public double FrameRate { get; init; } = -1;
     public string VideoCodec { get; init; } = string.Empty;
-    public bool IsAudioEraced { get; init; }
+    public bool IsAudioEraced { get; init; } = false;
     public string Format { get; init; } = string.Empty;
-    public TimeSpan? TrimStart { get; init; } = null;
-    public TimeSpan? TrimEnd { get; init; } = null;
 }
