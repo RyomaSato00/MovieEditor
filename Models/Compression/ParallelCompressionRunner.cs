@@ -47,18 +47,19 @@ internal class ParallelCompressionRunner : IDisposable, IAnyProcess
                 .WithDegreeOfParallelism(2)
                 .ForAll(movieInfo =>
                 {
-                    var outputPath = GetOutputPath(movieInfo.FilePath, outputFolder, attachedNameTag, parameter.Format);
+                    // 出力パスがすでに指定されていればそれを使用する。
+                    // 出力パスがなければ（nullならば）ここで指定する
+                    movieInfo.OutputPath ??= GetOutputPath(movieInfo.FilePath, outputFolder, attachedNameTag, parameter.Format);
                     VideoCompressor.Compress
                     (
                         movieInfo,
-                        outputPath,
                         parameter,
                         _cancelable.Token
                     );
 
                     _cancelable.Token.ThrowIfCancellationRequested();
 
-                    long fileSize = new FileInfo(outputPath).Length / 1000;
+                    long fileSize = new FileInfo(movieInfo.OutputPath).Length / 1000;
                     lock (_parallelLock)
                     {
                         finishedCount++;
@@ -72,6 +73,11 @@ internal class ParallelCompressionRunner : IDisposable, IAnyProcess
             catch (OperationCanceledException)
             {
                 MyConsole.WriteLine("キャンセルされました", MyConsole.Level.Info);
+            }
+            catch(Exception e)
+            {
+                MyConsole.WriteLine($"想定外のエラー:{e.Message}", MyConsole.Level.Error);
+                System.Diagnostics.Debug.WriteLine(e);
             }
         },
         _cancelable.Token);

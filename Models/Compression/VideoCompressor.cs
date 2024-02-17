@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.IO;
 using FFMpegCore;
 using MovieEditor.Models.Information;
 using MyCommonFunctions;
@@ -7,11 +8,11 @@ namespace MovieEditor.Models.Compression;
 
 internal class VideoCompressor
 {
-    public static void Compress(MovieInfo movieInfo, string outputPath, CompressionParameter parameter, CancellationToken cancelToken)
+    public static void Compress(MovieInfo movieInfo, CompressionParameter parameter, CancellationToken cancelToken)
     {
         ProcessStartInfo processInfo = new("ffmpeg")
         {
-            Arguments = MakeArguments(movieInfo, outputPath, parameter),
+            Arguments = MakeArguments(movieInfo, parameter),
             UseShellExecute = false,
             CreateNoWindow = true
         };
@@ -25,7 +26,7 @@ internal class VideoCompressor
         // && false == cancelToken.IsCancellationRequested) { }
     }
 
-    private static string MakeArguments(MovieInfo movieInfo, string outputPath, CompressionParameter parameter)
+    private static string MakeArguments(MovieInfo movieInfo, CompressionParameter parameter)
     {
         List<string> argList = [];
         argList.Add($"-y -i \"{movieInfo.FilePath}\"");
@@ -89,7 +90,13 @@ internal class VideoCompressor
             argList.Add($"-to {movieInfo.TrimEnd:hh\\:mm\\:ss\\.fff}");
         }
 
-        argList.Add($"\"{outputPath}\"");
+        // 出力先指定
+        if(movieInfo.OutputPath is null)
+        {
+            throw new ArgumentNullException("出力先が指定されていません");
+        }
+
+        argList.Add($"\"{movieInfo.OutputPath}\"");
 
         return string.Join(" ", argList);
     }

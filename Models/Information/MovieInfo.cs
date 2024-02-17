@@ -23,6 +23,7 @@ internal record MovieInfo
 
     public string FilePath { get; init; } = string.Empty;
     public string FileName { get; init; } = string.Empty;
+    public string Extension { get; init; } = string.Empty;
     public int FileSize { get; init; } = 0;
     public TimeSpan Duration { get; init; } = TimeSpan.Zero;
     public int Width { get; init; } = 0;
@@ -33,6 +34,7 @@ internal record MovieInfo
     public int VideoBitRate { get; init; } = 0;
     public TimeSpan? TrimStart { get; set; } = null;
     public TimeSpan? TrimEnd { get; set; } = null;
+    public string? OutputPath { get; set; } = null;
     public string FileSizeString => $"{FileSize} kb";
     public string FormattedDuration => Duration.ToString(@"hh\:mm\:ss\.ff");
     public string ScaleString => $"{Width} : {Height} ({AspectRatio.Width}:{AspectRatio.Height})";
@@ -59,6 +61,7 @@ internal record MovieInfo
         {
             FilePath = filePath,
             FileName = Path.GetFileName(filePath),
+            Extension = Path.GetExtension(filePath),
             FileSize = (int)(new FileInfo(filePath).Length / 1000),
             Duration = video.Duration,
             Width = video.Width,
@@ -101,7 +104,7 @@ internal record MovieInfo
         && false == cancelToken.IsCancellationRequested) { }
 
         // キャンセルが飛ばなければjpgファイルが生成されているはず。ビットマップを渡せる。
-        if(false == cancelToken.IsCancellationRequested)
+        if (false == cancelToken.IsCancellationRequested)
         {
             return new Uri(Path.GetFullPath(thumbnailImagePath));
         }
@@ -117,21 +120,21 @@ internal record MovieInfo
     public static void DeleteThumbnailCaches()
     {
         // キャッシュフォルダがないなら、何もしない
-        if(false == Directory.Exists(ThumbnailCacheFolder)) return;
+        if (false == Directory.Exists(ThumbnailCacheFolder)) return;
 
         string[] files = Directory.GetFiles(ThumbnailCacheFolder);
         // キャッシュファイルを削除
-        foreach(var file in files)
+        foreach (var file in files)
         {
             try
             {
                 File.Delete(file);
             }
-            catch(FileNotFoundException)
+            catch (FileNotFoundException)
             {
                 continue;
             }
-            catch(UnauthorizedAccessException)
+            catch (UnauthorizedAccessException)
             {
                 continue;
             }

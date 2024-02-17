@@ -4,6 +4,7 @@ using Reactive.Bindings;
 using CommunityToolkit.Mvvm.Input;
 using MovieEditor.Models.Information;
 using MovieEditor.Models.Join;
+using MovieEditor.Views;
 
 namespace MovieEditor.ViewModels;
 
@@ -15,6 +16,7 @@ internal partial class MovieJoinWindowViewModel : ObservableObject, IDisposable
     [ObservableProperty] private bool _isAllChecked = true;
     [ObservableProperty] private bool _isThumbnailVisible = false;
     [ObservableProperty] private int _selectedIndex = -1;
+    private TimeTrimWindow? _timeTrimWindow = null;
 
     /// <summary>
     /// 「削除」ボタンを押したときにその項目をリストから削除する
@@ -63,8 +65,7 @@ internal partial class MovieJoinWindowViewModel : ObservableObject, IDisposable
     {
         System.Diagnostics.Debug.WriteLine("決定");
 
-        var joinProcess = new VideoJoiner();
-
+        using var joinProcess = new VideoJoiner();
         var argumentFiles = MovieInfoList
             .Where(item => item.IsChecked)
             .Select(item => item.Info)
@@ -78,6 +79,7 @@ internal partial class MovieJoinWindowViewModel : ObservableObject, IDisposable
     private async Task TrimByTime(string filePath)
     {
         var (window, viewModel) = SubWindowCreator.CreateTimeTrimWindow();
+        _timeTrimWindow = window;
         try
         {
             var (trimStart, trimEnd) = await viewModel.ResultWaitable;
@@ -119,6 +121,9 @@ internal partial class MovieJoinWindowViewModel : ObservableObject, IDisposable
         {
             _joinWaitable.SetCanceled();
         }
+        
+        // 時間指定ウィンドウが開いたままならば、消す
+        _timeTrimWindow?.Close();
     }
 
 
