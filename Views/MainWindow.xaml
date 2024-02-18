@@ -155,7 +155,7 @@
 
         <TabControl SelectedIndex="{Binding MainSettings.ProcessMode}">
             <TabItem Header="動画圧縮">
-                <ui:SimpleStackPanel Orientation="Vertical" Spacing="5">
+                <ui:SimpleStackPanel Orientation="Vertical" Spacing="5" Height="100">
                     <ui:SimpleStackPanel Orientation="Horizontal" Spacing="10">
                         <ui:SimpleStackPanel Orientation="Horizontal">
                             <Label Content="Width :" VerticalContentAlignment="Center" Margin="8" />
@@ -201,18 +201,52 @@
             </TabItem>
 
             <TabItem Header="音声抽出">
-                <ui:SimpleStackPanel HorizontalAlignment="Center">
+                <ui:SimpleStackPanel HorizontalAlignment="Center" Height="100">
                     <Label Content="動画ファイルから音声のみを抽出します。コーデックはAACです。" VerticalContentAlignment="Center" />
                 </ui:SimpleStackPanel>
             </TabItem>
 
             <TabItem Header="再生速度">
-                <ui:SimpleStackPanel Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Center" >
+                <ui:SimpleStackPanel Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Center" Height="100" >
                     <Label Content="速度倍率：" HorizontalContentAlignment="Right" VerticalContentAlignment="Center" Width="80" />
                     <TextBox Text="{Binding MainSettings.Speed.SpeedRate}" 
                         Height="20" Width="80"
                         HorizontalContentAlignment="Right" VerticalContentAlignment="Center" />
                     <Label Content="倍速" VerticalContentAlignment="Center" Margin="10" />
+                </ui:SimpleStackPanel>
+            </TabItem>
+
+            <TabItem Header="画像出力">
+                <ui:SimpleStackPanel HorizontalAlignment="Left" VerticalAlignment="Center" Height="100" Spacing="4">
+                    <ui:SimpleStackPanel Orientation="Horizontal" Spacing="12">
+                        <ui:SimpleStackPanel Orientation="Horizontal">
+                            <Label Content="フォーマット：" HorizontalContentAlignment="Right" VerticalContentAlignment="Center" />
+                            <TextBox Text="{Binding MainSettings.ImgGenerate.Format}"
+                                Height="20" Width="80"
+                                HorizontalContentAlignment="Left" VerticalContentAlignment="Center" />
+                        </ui:SimpleStackPanel>
+
+                        <ui:SimpleStackPanel Orientation="Horizontal">
+                            <Label Content="フレーム数 / 秒：" HorizontalContentAlignment="Right" VerticalContentAlignment="Center" />
+                            <TextBox Text="{Binding MainSettings.ImgGenerate.FramePerOneSecond}"
+                                Height="20" Width="80"
+                                HorizontalContentAlignment="Right" VerticalContentAlignment="Center" />
+                        </ui:SimpleStackPanel>
+
+                        <ui:SimpleStackPanel Orientation="Horizontal">
+                            <Label Content="合計フレーム数：" HorizontalContentAlignment="Right" VerticalContentAlignment="Center" />
+                            <TextBox Text="{Binding MainSettings.ImgGenerate.FrameSum}"
+                                Height="20" Width="80"
+                                HorizontalContentAlignment="Right" VerticalContentAlignment="Center" />
+                        </ui:SimpleStackPanel>
+
+                        <ui:SimpleStackPanel Orientation="Horizontal">
+                            <Label Content="品質：" HorizontalContentAlignment="Right" VerticalContentAlignment="Center" />
+                            <TextBox Text="{Binding MainSettings.ImgGenerate.Quality}"
+                                Height="20" Width="80"
+                                HorizontalContentAlignment="Right" VerticalContentAlignment="Center" />
+                        </ui:SimpleStackPanel>
+                    </ui:SimpleStackPanel>
                 </ui:SimpleStackPanel>
             </TabItem>
         </TabControl>

@@ -11,6 +11,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using MovieEditor.Models;
 using MovieEditor.Models.Compression;
+using MovieEditor.Models.ImageGenerate;
 using MovieEditor.Models.Information;
 using MovieEditor.Views;
 using MyCommonFunctions;
@@ -230,6 +231,14 @@ internal partial class MainWindowViewModel : ObservableObject, IDisposable
                 }
                 break;
 
+            case ProcessModeEnum.ImageGenerate:
+                MyConsole.WriteLine("画像出力処理開始", MyConsole.Level.Info);
+                using (var viewModel = SubWindowCreator.CreateProgressWindow(_modelManager.ParallelImageGenerate))
+                {
+                    processedFiles = await RunImageGenerate(sources);
+                }
+                break;
+
             default:
                 break;
         }
@@ -313,6 +322,28 @@ internal partial class MainWindowViewModel : ObservableObject, IDisposable
         catch (Exception e)
         {
             MyConsole.WriteLine($"想定外のエラー：{e}", MyConsole.Level.Error);
+            return Array.Empty<MovieInfo>();
+        }
+    }
+
+    private async Task<MovieInfo[]> RunImageGenerate(MovieInfo[] sources)
+    {
+        var parameter = new ImageGenerateParameter()
+        {
+            Format = MainSettings.ImgGenerate.Format,
+            FramePerOneSecond = MainSettings.ImgGenerate.FramePerOneSecond,
+            FrameSum = MainSettings.ImgGenerate.FrameSum,
+            Quality = MainSettings.ImgGenerate.Quality
+        };
+        try
+        {
+            return await _modelManager.ParallelImageGenerate.Run(
+                sources, OutputDirectory, parameter
+            );
+        }
+        catch (Exception e)
+        {
+            MyConsole.WriteLine($"想定外のエラー：{e.ToString()}", MyConsole.Level.Error);
             return Array.Empty<MovieInfo>();
         }
     }

@@ -13,10 +13,10 @@ internal static class SettingManager
         {
             var jsonContent = File.ReadAllText(SettingFilePath);
             var setting = JsonConvert.DeserializeObject<MainSettings>(jsonContent);
-            if(setting is null) return new MainSettings();
+            if (setting is null) return new MainSettings();
             else return setting;
         }
-        catch(Exception)
+        catch (Exception)
         {
             return new MainSettings();
         }
@@ -37,6 +37,7 @@ internal class MainSettings
     public bool IsThumbnailVisible { get; set; } = false;
     public CompressionCondition Comp { get; set; } = new();
     public SpeedCondition Speed { get; set; } = new();
+    public ImageGenerateCondition ImgGenerate { get; set; } = new();
     public bool OpenExplorer { get; set; } = true;
     public bool UseDebugLog { get; set; } = false;
 }
@@ -56,9 +57,18 @@ internal class SpeedCondition
     public double SpeedRate { get; set; } = 1;
 }
 
+internal class ImageGenerateCondition
+{
+    public string Format { get; set; } = "png";
+    public int FramePerOneSecond { get; set; } = -1;
+    public int FrameSum { get; set; } = -1;
+    public int Quality { get; set; } = -1;
+}
+
 internal enum ProcessModeEnum
 {
     VideoCompression,
     AudioExtraction,
     SpeedChange,
+    ImageGenerate,
 }
