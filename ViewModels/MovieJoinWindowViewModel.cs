@@ -103,6 +103,19 @@ internal partial class MovieJoinWindowViewModel : ObservableObject, IDisposable
     }
 
     /// <summary>
+    /// SelectedIndexのアイテムをindexへ挿入する
+    /// </summary>
+    /// <param name="index"></param>
+    [RelayCommand]
+    private void ReplaceItem(int index)
+    {
+        if (index >= 0)
+        {
+            MovieInfoList.Move(SelectedIndex, index);
+        }
+    }
+
+    /// <summary>
     /// リストに項目を追加する
     /// </summary>
     /// <param name="movies"></param>
@@ -121,7 +134,7 @@ internal partial class MovieJoinWindowViewModel : ObservableObject, IDisposable
         {
             _joinWaitable.SetCanceled();
         }
-        
+
         // 時間指定ウィンドウが開いたままならば、消す
         _timeTrimWindow?.Close();
     }
