@@ -1,5 +1,6 @@
 using MovieEditor.Views;
 using MovieEditor.Models;
+using System.Windows;
 
 namespace MovieEditor.ViewModels;
 
@@ -10,13 +11,15 @@ internal static class SubWindowCreator
     /// </summary>
     /// <param name="process"></param>
     /// <returns></returns>
-    public static ProgressWindowViewModel CreateProgressWindow(IAnyProcess process)
+    public static WindowDisposable CreateProgressWindow(IAnyProcess process)
     {
         var progressWindow = new ProgressWindow();
-        var progressWindowViewModel = new ProgressWindowViewModel(process, progressWindow.Close);
+        var progressWindowViewModel = new ProgressWindowViewModel(process);
         progressWindow.DataContext = progressWindowViewModel;
+        // ウィンドウを消したときもDisposeをする
+        progressWindow.Closing += (_, _) => progressWindowViewModel.Dispose();
         progressWindow.Show();
-        return progressWindowViewModel;
+        return new WindowDisposable(progressWindow);
     }
 
     /// <summary>
@@ -47,5 +50,18 @@ internal static class SubWindowCreator
         movieJoinWindow.Closing += (_, _) => movieJoinWindowViewModel.Dispose();
         movieJoinWindow.Show();
         return (movieJoinWindow, movieJoinWindowViewModel);
+    }
+}
+
+/// <summary>
+/// サブウィンドウ破棄用クラス
+/// </summary>
+internal class WindowDisposable(Window window) : IDisposable
+{
+    private readonly Window _window = window;
+
+    public void Dispose()
+    {
+        _window.Close();
     }
 }

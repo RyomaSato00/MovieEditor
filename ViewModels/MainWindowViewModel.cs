@@ -209,7 +209,7 @@ internal partial class MainWindowViewModel : ObservableObject, IDisposable
         {
             case ProcessModeEnum.VideoCompression:
                 MyConsole.WriteLine("圧縮処理開始", MyConsole.Level.Info);
-                using (var viewModel = SubWindowCreator.CreateProgressWindow(_modelManager.ParallelComp))
+                using (var disposable = SubWindowCreator.CreateProgressWindow(_modelManager.ParallelComp))
                 {
                     processedFiles = await RunCompression(sources);
                 }
@@ -217,7 +217,7 @@ internal partial class MainWindowViewModel : ObservableObject, IDisposable
 
             case ProcessModeEnum.AudioExtraction:
                 MyConsole.WriteLine("音声抽出処理開始", MyConsole.Level.Info);
-                using (var viewModel = SubWindowCreator.CreateProgressWindow(_modelManager.ParallelExtract))
+                using (var disposable = SubWindowCreator.CreateProgressWindow(_modelManager.ParallelExtract))
                 {
                     processedFiles = await RunExtraction(sources);
                 }
@@ -225,7 +225,7 @@ internal partial class MainWindowViewModel : ObservableObject, IDisposable
 
             case ProcessModeEnum.SpeedChange:
                 MyConsole.WriteLine("再生速度変更開始", MyConsole.Level.Info);
-                using (var viewModel = SubWindowCreator.CreateProgressWindow(_modelManager.ParallelSpeedChange))
+                using (var disposable = SubWindowCreator.CreateProgressWindow(_modelManager.ParallelSpeedChange))
                 {
                     processedFiles = await RunSpeedChange(sources);
                 }
@@ -233,7 +233,7 @@ internal partial class MainWindowViewModel : ObservableObject, IDisposable
 
             case ProcessModeEnum.ImageGenerate:
                 MyConsole.WriteLine("画像出力処理開始", MyConsole.Level.Info);
-                using (var viewModel = SubWindowCreator.CreateProgressWindow(_modelManager.ParallelImageGenerate))
+                using (var disposable = SubWindowCreator.CreateProgressWindow(_modelManager.ParallelImageGenerate))
                 {
                     processedFiles = await RunImageGenerate(sources);
                 }
@@ -326,6 +326,11 @@ internal partial class MainWindowViewModel : ObservableObject, IDisposable
         }
     }
 
+    /// <summary>
+    /// 画像出力処理を非同期実行する
+    /// </summary>
+    /// <param name="sources"></param>
+    /// <returns>処理済みファイル配列</returns>
     private async Task<MovieInfo[]> RunImageGenerate(MovieInfo[] sources)
     {
         var parameter = new ImageGenerateParameter()
@@ -343,7 +348,7 @@ internal partial class MainWindowViewModel : ObservableObject, IDisposable
         }
         catch (Exception e)
         {
-            MyConsole.WriteLine($"想定外のエラー：{e.ToString()}", MyConsole.Level.Error);
+            MyConsole.WriteLine($"想定外のエラー：{e}", MyConsole.Level.Error);
             return Array.Empty<MovieInfo>();
         }
     }
