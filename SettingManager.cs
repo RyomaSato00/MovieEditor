@@ -37,6 +37,7 @@ internal class MainSettings
     public bool IsThumbnailVisible { get; set; } = false;
     public CompressionCondition Comp { get; set; } = new();
     public SpeedCondition Speed { get; set; } = new();
+    public bool OpenExplorer { get; set; } = true;
     public bool UseDebugLog { get; set; } = false;
 }
 

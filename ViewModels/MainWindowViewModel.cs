@@ -103,6 +103,12 @@ internal partial class MainWindowViewModel : ObservableObject, IDisposable
             _isRunnable.Value = true;
             // 処理済ファイルをSourceListから消す（isRunnableの変更可能性あり）
             RemoveProcessFinishedFiles(processedFiles);
+
+            if (MainSettings.OpenExplorer)
+            {
+                // 出力先ディレクトリをエクスプローラで開く
+                await OpenExplorer(OutputDirectory);
+            }
         });
 
     }
@@ -397,7 +403,7 @@ internal partial class MainWindowViewModel : ObservableObject, IDisposable
             // 結合後のファイルをリストに追加する
             await GiveSourceFiles([joinedVideo]);
         }
-        catch(TaskCanceledException)
+        catch (TaskCanceledException)
         {
 
         }
@@ -455,6 +461,27 @@ internal partial class MainWindowViewModel : ObservableObject, IDisposable
     {
         if (false == Directory.Exists(directoryPath)) return;
         OutputDirectory = directoryPath;
+    }
+
+    /// <summary>
+    /// 指定パスをエクスプローラで開く
+    /// </summary>
+    /// <param name="path"></param>
+    /// <returns></returns>
+    private static async Task OpenExplorer(string path)
+    {
+        var info = new ProcessStartInfo("EXPLORER.EXE")
+        {
+            Arguments = path,
+            UseShellExecute = false
+        };
+        using var process = new Process() { StartInfo = info };
+        // UIをフリーズさせないために、非同期でエクスプローラが起動するのを待つ
+        await Task.Run(() =>
+        {
+            process.Start();
+            process.WaitForExit();
+        });
     }
 }
 
