@@ -79,7 +79,7 @@ internal record MovieInfo
     /// <param name="filePath"></param>
     /// <param name="cancelToken"></param>
     /// <returns></returns>
-    public static Uri GetThumbnailUri(string filePath, CancellationToken cancelToken = default)
+    public static Uri GetThumbnailUri(string filePath)
     {
         if (false == Directory.Exists(ThumbnailCacheFolder))
         {
@@ -99,19 +99,9 @@ internal record MovieInfo
         // キャッシュフォルダにサムネイル用のjpgファイルを生成する
         using var process = new Process() { StartInfo = startInfo };
         process.Start();
+        process.WaitForExit();
 
-        while (false == process.HasExited
-        && false == cancelToken.IsCancellationRequested) { }
-
-        // キャンセルが飛ばなければjpgファイルが生成されているはず。ビットマップを渡せる。
-        if (false == cancelToken.IsCancellationRequested)
-        {
-            return new Uri(Path.GetFullPath(thumbnailImagePath));
-        }
-        else
-        {
-            throw new FileNotFoundException("サムネイル画像が見つかりません");
-        }
+        return new Uri(Path.GetFullPath(thumbnailImagePath));
     }
 
     /// <summary>

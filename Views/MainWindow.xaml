@@ -61,7 +61,7 @@
                     Command="{Binding DataContext.RemoveItemCommand, RelativeSource={RelativeSource AncestorType=ListView}}" 
                     CommandParameter="{Binding Info.FilePath}" />
                 <CheckBox Grid.Column="1" IsChecked="{Binding IsChecked}" />
-                <Image Grid.Column="2" Source="{Binding Thumbnail}" Height="100" />
+                <Image Grid.Column="2" Source="{Binding Thumbnail}" Height="76" />
                 <TextBlock Grid.Column="3" Text="{Binding TrimPeriod}" />
                 <TextBlock Grid.Column="4" Text="{Binding Info.FrameRateString}" />
                 <TextBlock Grid.Column="5" Text="{Binding Info.FileSizeString}" />
