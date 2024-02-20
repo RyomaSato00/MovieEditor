@@ -111,7 +111,7 @@
                                 <!--通常はSourceListItemElementからBinding先を探そうとするため、Tag(=MainWindowViewModel)から探させるようにする-->
                                 <MenuItem Header="時間範囲指定" 
                                     Command="{Binding PlacementTarget.Tag.TrimByTimeCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
-                                    CommandParameter="{Binding Info.FilePath}" />
+                                    CommandParameter="{Binding Info}" />
                                 <MenuItem Header="動画の結合"
                                     Command="{Binding PlacementTarget.Tag.JoinMoviesCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
                                  />

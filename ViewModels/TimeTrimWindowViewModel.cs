@@ -21,10 +21,29 @@ internal partial class TimeTrimWindowViewModel : ObservableObject, IDisposable
         _enterWaitable.SetCanceled();
     }
 
+    /// <summary> 動画ファイルのパス </summary>
+    [ObservableProperty] private string _moviePath = string.Empty;
+    
+    [ObservableProperty] private double _movieDuration;
+
     /// <summary> 時間範囲開始時刻秒数 </summary>
     [ObservableProperty] private double? _trimStart = null;
     /// <summary> 時間範囲終了時刻秒数 </summary>
     [ObservableProperty] private double? _trimEnd = null;
+
+
+    [RelayCommand] private void SetStartTime(double currentPosition)
+    {
+        System.Diagnostics.Debug.WriteLine($"position:{currentPosition}");
+        // 小数点第3位まで丸める
+        TrimStart = Math.Round(currentPosition, 3);
+    }
+
+    [RelayCommand] private void SetEndTime(double currentPosition)
+    {
+        // 小数点第3位まで丸める
+        TrimEnd = Math.Round(currentPosition, 3);
+    }
 
     [RelayCommand]
     private void Enter()

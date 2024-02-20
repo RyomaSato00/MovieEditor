@@ -7,11 +7,24 @@
         xmlns:ui="http://schemas.modernwpf.com/2019"
         xmlns:behavior="clr-namespace:MovieEditor.Views.Behavior"
         mc:Ignorable="d"
-        Title="時間範囲指定" Height="100" Width="500"
+        Title="時間範囲指定" Height="900" Width="1250"
         Topmost="True"
         ui:WindowHelper.UseModernWindowStyle="True">
 
     <ui:SimpleStackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="10">
+        <MediaElement Name="MoviePlayer" LoadedBehavior="Manual"
+            Source="{Binding MoviePath}"
+            HorizontalAlignment="Center" Height="700" Width="1200" 
+            />
+
+        <ui:SimpleStackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center" >
+            <ToggleButton Name="PlayToggle" Content="再生" Click="PlayToggle_OnClick" />
+            <Slider Name="TimeSlider" Width="1000" Maximum="{Binding MovieDuration}"
+                Thumb.DragStarted="TimeSlider_DragStarted" Thumb.DragCompleted="TimeSlider_DragCompleted"
+                />
+            <Label Name="CurrentTime" Content="00:00.000" VerticalAlignment="Center" />
+        </ui:SimpleStackPanel>
+
         <Grid>
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="80" />
@@ -21,13 +34,15 @@
                 <ColumnDefinition Width="100" />
             </Grid.ColumnDefinitions>
 
-            <Label Content="開始：" 
-                VerticalAlignment="Center" HorizontalAlignment="Right"
+            <Button Name="StartTime" Content="開始："
+                Command="{Binding SetStartTimeCommand}" CommandParameter="{Binding ElementName=TimeSlider, Path=Value}"
+                VerticalAlignment="Center" HorizontalAlignment="Center"
                 Grid.Column="0" />
             <TextBox Text="{Binding TrimStart}"
                 Grid.Column="1" />
-            <Label Content="終了：" 
-                VerticalAlignment="Center" HorizontalAlignment="Right"
+            <Button Name="EndTime" Content="終了："
+                Command="{Binding SetEndTimeCommand}" CommandParameter="{Binding ElementName=TimeSlider, Path=Value}"
+                VerticalAlignment="Center" HorizontalAlignment="Center"
                 Grid.Column="2" />
             <TextBox Text="{Binding TrimEnd}"
                 Grid.Column="3" />

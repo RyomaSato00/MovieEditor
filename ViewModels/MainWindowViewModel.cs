@@ -397,9 +397,11 @@ internal partial class MainWindowViewModel : ObservableObject, IDisposable
     /// </summary>
     /// <param name="info"></param>
     [RelayCommand]
-    private async Task TrimByTime(string filePath)
+    private async Task TrimByTime(MovieInfo info)
     {
         var (window, viewModel) = SubWindowCreator.CreateTimeTrimWindow();
+        viewModel.MoviePath = info.FilePath;
+        viewModel.MovieDuration = info.Duration.TotalSeconds;
         try
         {
             var (trimStart, trimEnd) = await viewModel.ResultWaitable;
@@ -408,7 +410,7 @@ internal partial class MainWindowViewModel : ObservableObject, IDisposable
 
             foreach (var item in MovieInfoList)
             {
-                if (filePath != item.Info.FilePath) continue;
+                if (info.FilePath != item.Info.FilePath) continue;
 
                 item.Info.TrimStart = trimStart;
                 item.Info.TrimEnd = trimEnd;
