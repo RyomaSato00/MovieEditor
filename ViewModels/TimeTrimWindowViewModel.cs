@@ -10,9 +10,9 @@ internal partial class TimeTrimWindowViewModel : ObservableObject, IDisposable
 
     public Task<(TimeSpan?, TimeSpan?)> ResultWaitable => _enterWaitable.Task;
 
-    public TimeTrimWindowViewModel()
+    public TimeTrimWindowViewModel(string filePath)
     {
-        
+        MoviePath = filePath;
     }
 
     public void Dispose()
@@ -24,8 +24,6 @@ internal partial class TimeTrimWindowViewModel : ObservableObject, IDisposable
     /// <summary> 動画ファイルのパス </summary>
     [ObservableProperty] private string _moviePath = string.Empty;
     
-    [ObservableProperty] private double _movieDuration;
-
     /// <summary> 時間範囲開始時刻秒数 </summary>
     [ObservableProperty] private double? _trimStart = null;
     /// <summary> 時間範囲終了時刻秒数 </summary>
@@ -36,13 +34,13 @@ internal partial class TimeTrimWindowViewModel : ObservableObject, IDisposable
     {
         System.Diagnostics.Debug.WriteLine($"position:{currentPosition}");
         // 小数点第3位まで丸める
-        TrimStart = Math.Round(currentPosition, 3);
+        TrimStart = Math.Round(currentPosition / 1000, 3);
     }
 
     [RelayCommand] private void SetEndTime(double currentPosition)
     {
         // 小数点第3位まで丸める
-        TrimEnd = Math.Round(currentPosition, 3);
+        TrimEnd = Math.Round(currentPosition / 1000, 3);
     }
 
     [RelayCommand]

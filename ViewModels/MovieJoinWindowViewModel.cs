@@ -78,7 +78,7 @@ internal partial class MovieJoinWindowViewModel : ObservableObject, IDisposable
     [RelayCommand]
     private async Task TrimByTime(string filePath)
     {
-        var (window, viewModel) = SubWindowCreator.CreateTimeTrimWindow();
+        var (window, viewModel) = SubWindowCreator.CreateTimeTrimWindow(filePath);
         _timeTrimWindow = window;
         try
         {

@@ -11,18 +11,37 @@
         Topmost="True"
         ui:WindowHelper.UseModernWindowStyle="True">
 
+    <Window.Resources>
+        <Storyboard x:Key="TimelineStory" Name="TimelineStory" SlipBehavior="Slip"
+            Completed="MoviePlayer_MediaEnded" >
+            <MediaTimeline Name="Timeline"
+                Source="{Binding MoviePath}" 
+                Storyboard.TargetName="MoviePlayer"
+                BeginTime="{Binding ElementName=MoviePlayer, Path=Position}"
+                Duration="{Binding ElementName=MoviePlayer, Path=NaturalDuration}"
+                CurrentTimeInvalidated="MediaTimeline_CurrentTimeInvalidated"
+                />
+        </Storyboard>
+    </Window.Resources>
+
     <ui:SimpleStackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="10">
         <MediaElement Name="MoviePlayer" LoadedBehavior="Manual"
-            Source="{Binding MoviePath}"
+            ScrubbingEnabled="True" 
             HorizontalAlignment="Center" Height="700" Width="1200" 
+            Loaded="MoviePlayer_Loaded"
+            MediaOpened="MoviePlayer_MediaOpened"
             />
 
         <ui:SimpleStackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center" >
-            <ToggleButton Name="PlayToggle" Content="再生" Click="PlayToggle_OnClick" />
-            <Slider Name="TimeSlider" Width="1000" Maximum="{Binding MovieDuration}"
+            <ToggleButton Name="PlayToggle" Content="▶" Click="PlayToggle_OnClick" />
+            <Slider Name="TimeSlider" Width="1000" 
                 Thumb.DragStarted="TimeSlider_DragStarted" Thumb.DragCompleted="TimeSlider_DragCompleted"
                 />
-            <Label Name="CurrentTime" Content="00:00.000" VerticalAlignment="Center" />
+            <ui:SimpleStackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                <Label Name="CurrentTime" Content="00:00.000" VerticalAlignment="Center" />
+                <Label Content=" / " VerticalAlignment="Center" />
+                <Label Name="MaxTime" Content="00:00.000" VerticalAlignment="Center" />
+            </ui:SimpleStackPanel>
         </ui:SimpleStackPanel>
 
         <Grid>

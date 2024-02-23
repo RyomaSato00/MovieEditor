@@ -27,10 +27,10 @@ internal static class SubWindowCreator
     /// </summary>
     /// <param name="CreateTimeTrimWindow("></param>
     /// <returns></returns>
-    public static (TimeTrimWindow, TimeTrimWindowViewModel) CreateTimeTrimWindow()
+    public static (TimeTrimWindow, TimeTrimWindowViewModel) CreateTimeTrimWindow(string filePath)
     {
         var timeTrimWindow = new TimeTrimWindow();
-        var timeTrimWindowViewModel = new TimeTrimWindowViewModel();
+        var timeTrimWindowViewModel = new TimeTrimWindowViewModel(filePath);
         timeTrimWindow.DataContext = timeTrimWindowViewModel;
         timeTrimWindow.Closing += (_, _) => timeTrimWindowViewModel.Dispose();
         timeTrimWindow.Show();
