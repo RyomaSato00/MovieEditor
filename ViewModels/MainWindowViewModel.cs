@@ -35,6 +35,12 @@ internal partial class MainWindowViewModel : ObservableObject, IDisposable
     /// <summary> SourceListの見守り用ReactiveProperty </summary>
     private readonly ReadOnlyReactiveCollection<SourceListItemElement> _reactiveSourceList;
 
+    /// <summary> MainWindowを消したときに一緒に消すためにフィールドに保存する </summary>
+    private TimeTrimWindow? _timeTrimWindow;
+
+    /// <summary> MainWindowを消したときに一緒に消すためにフィールドに保存する </summary>
+    private MovieJoinWindow? _movieJoinWindow;
+
     /// <summary> ReactivePropertyに依存可能なRunコマンド </summary>
     public ReactiveCommand RunCommand { get; }
 
@@ -116,6 +122,10 @@ internal partial class MainWindowViewModel : ObservableObject, IDisposable
 
     public void Dispose()
     {
+        // 時間範囲指定ウィンドウが開いていたら、一緒に消す
+        _timeTrimWindow?.Close();
+        // 動画結合ウィンドウが開いていたら、一緒に消す
+        _movieJoinWindow?.Close();
         _disposables.Dispose();
         _modelManager.Dispose();
         // 設定値保存
@@ -392,6 +402,36 @@ internal partial class MainWindowViewModel : ObservableObject, IDisposable
         }
     }
 
+    [RelayCommand]
+    private void DuplicateItem(MovieInfo info)
+    {
+        var duplicateInfo = info with { DuplicateCount = info.DuplicateCount + 1 };
+
+        // 項目を複製するとき、DuplicateCountは同一にならないようにする
+        while (MovieInfoList.Any(item => item.Info.DuplicateCount == duplicateInfo.DuplicateCount))
+        {
+            duplicateInfo = duplicateInfo with { DuplicateCount = duplicateInfo.DuplicateCount + 1 };
+        }
+
+        // 本当はThumbnailUriもcommand parameterで受け取りたかったが、
+        // command parameterに複数の値を指定するのは難しそうなので、MovieInfoListから探す
+        Uri? thumbnaiUri = null;
+        foreach (var item in MovieInfoList)
+        {
+            if (info == item.Info)
+            {
+                thumbnaiUri = item.ThumbnailUri;
+                break;
+            }
+        }
+
+        // thumbnailUriが見つかったとき、
+        if (thumbnaiUri is not null)
+        {
+            MovieInfoList.Add(new SourceListItemElement(duplicateInfo, thumbnaiUri));
+        }
+    }
+
     /// <summary>
     /// ListViewの項目で右クリックメニュー「時間範囲指定」をクリックしたときのイベントハンドラ
     /// </summary>
@@ -400,6 +440,7 @@ internal partial class MainWindowViewModel : ObservableObject, IDisposable
     private async Task TrimByTime(MovieInfo info)
     {
         var (window, viewModel) = SubWindowCreator.CreateTimeTrimWindow(info.FilePath);
+        _timeTrimWindow = window;
         try
         {
             var (trimStart, trimEnd) = await viewModel.ResultWaitable;
@@ -408,7 +449,7 @@ internal partial class MainWindowViewModel : ObservableObject, IDisposable
 
             foreach (var item in MovieInfoList)
             {
-                if (info.FilePath != item.Info.FilePath) continue;
+                if (info != item.Info) continue;
 
                 item.Info.TrimStart = trimStart;
                 item.Info.TrimEnd = trimEnd;
@@ -426,6 +467,7 @@ internal partial class MainWindowViewModel : ObservableObject, IDisposable
     private async Task JoinMovies()
     {
         var (window, viewModel) = SubWindowCreator.CreateMovieJoinWindow();
+        _movieJoinWindow = window;
         var targets = MovieInfoList.Where(item => item.IsChecked).Select(item => item.Clone()).ToArray();
         viewModel.AddMovies(targets);
         viewModel.IsThumbnailVisible = MainSettings.IsThumbnailVisible;

@@ -115,6 +115,10 @@
                                 <MenuItem Header="動画の結合"
                                     Command="{Binding PlacementTarget.Tag.JoinMoviesCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
                                  />
+                                <MenuItem Header="項目の複製"
+                                    Command="{Binding PlacementTarget.Tag.DuplicateItemCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                    CommandParameter="{Binding Info}"
+                                />
                             </ContextMenu>
                         </Setter.Value>
                     </Setter>

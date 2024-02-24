@@ -35,6 +35,8 @@ internal record MovieInfo
     public TimeSpan? TrimStart { get; set; } = null;
     public TimeSpan? TrimEnd { get; set; } = null;
     public string? OutputPath { get; set; } = null;
+    /// <summary> 複製回数 </summary>
+    public int DuplicateCount { get; init; } = 0;
     public string FileSizeString => $"{FileSize} kb";
     public string FormattedDuration => Duration.ToString(@"hh\:mm\:ss\.ff");
     public string ScaleString => $"{Width} : {Height} ({AspectRatio.Width}:{AspectRatio.Height})";

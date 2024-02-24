@@ -49,7 +49,7 @@ internal class ParallelCompressionRunner : IDisposable, IAnyProcess
                 {
                     // 出力パスがすでに指定されていればそれを使用する。
                     // 出力パスがなければ（nullならば）ここで指定する
-                    movieInfo.OutputPath ??= GetOutputPath(movieInfo.FilePath, outputFolder, attachedNameTag, parameter.Format);
+                    movieInfo.OutputPath ??= GetOutputPath(movieInfo.FilePath, outputFolder, attachedNameTag, movieInfo.DuplicateCount, parameter.Format);
                     VideoCompressor.Compress
                     (
                         movieInfo,
@@ -74,7 +74,7 @@ internal class ParallelCompressionRunner : IDisposable, IAnyProcess
             {
                 MyConsole.WriteLine("キャンセルされました", MyConsole.Level.Info);
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 MyConsole.WriteLine($"想定外のエラー:{e.Message}", MyConsole.Level.Error);
                 System.Diagnostics.Debug.WriteLine(e);
@@ -96,24 +96,52 @@ internal class ParallelCompressionRunner : IDisposable, IAnyProcess
         _cancelable?.Cancel();
     }
 
+    /// <summary>
+    /// 条件に合わせて出力パスを作成する
+    /// </summary>
+    /// <param name="inputPath">入力パス</param>
+    /// <param name="outputFolder">出力先ディレクトリ</param>
+    /// <param name="attachedNameTag">タグ</param>
+    /// <param name="duplicateCount">同ファイルの複製回数</param>
+    /// <param name="format">拡張子</param>
+    /// <returns>出力パス</returns>
     private static string GetOutputPath
     (
         string inputPath,
         string outputFolder,
         string? attachedNameTag,
+        int duplicateCount,
         string format
     )
     {
         var purefileName = Path.GetFileNameWithoutExtension(inputPath);
 
         string fileName;
+        // タグを付けないとき
         if (attachedNameTag is null)
         {
-            fileName = $"{purefileName}.{format}";
+            // 複製回数が1回以上
+            if (0 < duplicateCount)
+            {
+                fileName = $"{purefileName}({duplicateCount}).{format}";
+            }
+            else
+            {
+                fileName = $"{purefileName}.{format}";
+            }
         }
+        // タグを付けるとき
         else
         {
-            fileName = $"{purefileName}_{attachedNameTag}.{format}";
+            // 複製回数が1回以上
+            if (0 < duplicateCount)
+            {
+                fileName = $"{purefileName}({duplicateCount})_{attachedNameTag}.{format}";
+            }
+            else
+            {
+                fileName = $"{purefileName}_{attachedNameTag}.{format}";
+            }
         }
         return Path.Combine(outputFolder, fileName);
     }
