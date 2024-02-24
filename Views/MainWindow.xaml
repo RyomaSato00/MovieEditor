@@ -7,7 +7,7 @@
         xmlns:ui="http://schemas.modernwpf.com/2019"
         xmlns:behavior="clr-namespace:MovieEditor.Views.Behavior"
         mc:Ignorable="d"
-        Title="Movie Editor v1.2.2" Height="850" Width="800"
+        Title="Movie Editor v1.2.2" Height="900" Width="800"
         ui:WindowHelper.UseModernWindowStyle="True">
     <Window.Resources>
         <!--DefaultListViewItemStyleをBasedOnするとGridViewColumnの中でDisplayMemberBindingにより各要素をBindingすることができない。
@@ -87,7 +87,7 @@
                 <Button Content="クリア" Command="{Binding ClearSourceFilesCommand}" />
             </ui:SimpleStackPanel>
         </ui:SimpleStackPanel>
-		<ListView Name="SourceList" Margin="10" Height="300" Width="750"
+		<ListView Name="SourceList" Margin="10" Height="350" Width="750"
             ScrollViewer.VerticalScrollBarVisibility="Visible"
             behavior:ListViewDragBehavior.DragOverEffect="True"
             behavior:ListViewHorizontalScrollBehavior.ShiftHorizontalScroll="True"

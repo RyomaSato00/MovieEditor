@@ -24,10 +24,11 @@
         </Storyboard>
     </Window.Resources>
 
-    <ui:SimpleStackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="10">
+    <ui:SimpleStackPanel HorizontalAlignment="Center" VerticalAlignment="Top" Spacing="10">
         <MediaElement Name="MoviePlayer" LoadedBehavior="Manual"
             ScrubbingEnabled="True" 
-            HorizontalAlignment="Center" Height="700" Width="1200" 
+            HorizontalAlignment="Center" Height="576" Width="1024" 
+            VerticalAlignment="Top"
             Loaded="MoviePlayer_Loaded"
             MediaOpened="MoviePlayer_MediaOpened"
             />
@@ -44,32 +45,51 @@
             </ui:SimpleStackPanel>
         </ui:SimpleStackPanel>
 
-        <Grid>
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="80" />
-                <ColumnDefinition Width="100" />
-                <ColumnDefinition Width="80" />
-                <ColumnDefinition Width="100" />
-                <ColumnDefinition Width="100" />
-            </Grid.ColumnDefinitions>
+        <ui:SimpleStackPanel Orientation="Horizontal" Spacing="90" HorizontalAlignment="Center" VerticalAlignment="Top">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="350" />
+                    <ColumnDefinition Width="350" />
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="190" />
+                    <RowDefinition Height="40" />
+                </Grid.RowDefinitions>
 
-            <Button Name="StartTime" Content="開始："
-                Command="{Binding SetStartTimeCommand}" CommandParameter="{Binding ElementName=TimeSlider, Path=Value}"
-                VerticalAlignment="Center" HorizontalAlignment="Center"
-                Grid.Column="0" />
-            <TextBox Text="{Binding TrimStart}"
-                Grid.Column="1" />
-            <Button Name="EndTime" Content="終了："
-                Command="{Binding SetEndTimeCommand}" CommandParameter="{Binding ElementName=TimeSlider, Path=Value}"
-                VerticalAlignment="Center" HorizontalAlignment="Center"
-                Grid.Column="2" />
-            <TextBox Text="{Binding TrimEnd}"
-                Grid.Column="3" />
-            <Button Command="{Binding EnterCommand}"
-                Content="決定"
-                HorizontalAlignment="Center"
-                Grid.Column="4" />
-        </Grid>
+                <Label Content="開始位置" VerticalAlignment="Center" HorizontalAlignment="Center" Grid.Row="1" Grid.Column="0" />
+                <Image Width="320" Height="180" Source="{Binding StartImage}" Grid.Column="0" Grid.Row="0" />
+                <Label Content="終了位置" VerticalAlignment="Center" HorizontalAlignment="Center" Grid.Row="1" Grid.Column="1" />
+                <Image Width="320" Height="180" Source="{Binding EndImage}" Grid.Column="1" Grid.Row="0" />
+            </Grid>
+
+            <ui:SimpleStackPanel Orientation="Vertical" Spacing="8" HorizontalAlignment="Center" VerticalAlignment="Top">
+                <ui:SimpleStackPanel Orientation="Horizontal" Spacing="12" HorizontalAlignment="Center" VerticalAlignment="Top">
+                    <Button Name="StartTime" Content="開始："
+                        Command="{Binding SetStartTimeCommand}" CommandParameter="{Binding ElementName=TimeSlider, Path=Value}"
+                        VerticalAlignment="Top" HorizontalAlignment="Center"
+                        Grid.Column="3" Grid.Row="0" />
+                    <TextBox Text="{Binding TrimStart.Value}" Height="30" Width="100" VerticalAlignment="Top"
+                        Grid.Column="4" Grid.Row="0" />
+                    <Button Name="EndTime" Content="終了："
+                        Command="{Binding SetEndTimeCommand}" CommandParameter="{Binding ElementName=TimeSlider, Path=Value}"
+                        VerticalAlignment="Top" HorizontalAlignment="Center"
+                        Grid.Column="5" Grid.Row="0" />
+                    <TextBox Text="{Binding TrimEnd.Value}" Height="30" Width="100" VerticalAlignment="Top"
+                        Grid.Column="6" Grid.Row="0" />
+                    <Button Command="{Binding EnterCommand}"
+                        Style="{StaticResource AccentButtonStyle}"
+                        Content="決定" FontWeight="Bold" FontSize="16"
+                        HorizontalAlignment="Center" VerticalAlignment="Top"
+                        Grid.Column="7" Grid.Row="0" />
+                </ui:SimpleStackPanel>
+
+                <ui:SimpleStackPanel Orientation="Horizontal" Spacing="12" HorizontalAlignment="Stretch" VerticalAlignment="Top">
+                    <Label Content="総再生時間：" VerticalAlignment="Center" HorizontalAlignment="Left" />
+                    <Label Content="{Binding TrimedDuration}" VerticalAlignment="Center" HorizontalAlignment="Left" />
+                </ui:SimpleStackPanel>
+            </ui:SimpleStackPanel>
+        </ui:SimpleStackPanel>
+
     </ui:SimpleStackPanel>
 
 </Window>

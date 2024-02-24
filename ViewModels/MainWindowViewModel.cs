@@ -439,7 +439,7 @@ internal partial class MainWindowViewModel : ObservableObject, IDisposable
     [RelayCommand]
     private async Task TrimByTime(MovieInfo info)
     {
-        var (window, viewModel) = SubWindowCreator.CreateTimeTrimWindow(info.FilePath);
+        var (window, viewModel) = SubWindowCreator.CreateTimeTrimWindow(info);
         _timeTrimWindow = window;
         try
         {

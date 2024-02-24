@@ -1,6 +1,7 @@
 using MovieEditor.Views;
 using MovieEditor.Models;
 using System.Windows;
+using MovieEditor.Models.Information;
 
 namespace MovieEditor.ViewModels;
 
@@ -27,10 +28,10 @@ internal static class SubWindowCreator
     /// </summary>
     /// <param name="CreateTimeTrimWindow("></param>
     /// <returns></returns>
-    public static (TimeTrimWindow, TimeTrimWindowViewModel) CreateTimeTrimWindow(string filePath)
+    public static (TimeTrimWindow, TimeTrimWindowViewModel) CreateTimeTrimWindow(MovieInfo info)
     {
         var timeTrimWindow = new TimeTrimWindow();
-        var timeTrimWindowViewModel = new TimeTrimWindowViewModel(filePath);
+        var timeTrimWindowViewModel = new TimeTrimWindowViewModel(info.FilePath, info.Duration);
         timeTrimWindow.DataContext = timeTrimWindowViewModel;
         timeTrimWindow.Closing += (_, _) => timeTrimWindowViewModel.Dispose();
         timeTrimWindow.Show();

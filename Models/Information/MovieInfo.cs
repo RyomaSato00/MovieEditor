@@ -79,9 +79,9 @@ internal record MovieInfo
     /// 動画からサムネイル用の画像(jpg)を生成し、そのuriを返す
     /// </summary>
     /// <param name="filePath"></param>
-    /// <param name="cancelToken"></param>
+    /// <param name="positionSecond">サムネイルに採用する動画再生位置</param>
     /// <returns></returns>
-    public static Uri GetThumbnailUri(string filePath)
+    public static Uri GetThumbnailUri(string filePath, double positionSecond = 0)
     {
         if (false == Directory.Exists(ThumbnailCacheFolder))
         {
@@ -91,9 +91,12 @@ internal record MovieInfo
         string thumbnailImagePath = Path.Combine(ThumbnailCacheFolder, $"{Path.GetFileNameWithoutExtension(filePath)}.jpg");
         // ファイルパスの重複を回避する
         MyApi.ToNonDuplicatePath(ref thumbnailImagePath);
+
+        // サムネイルに採用する動画再生位置
+        TimeSpan position = TimeSpan.FromSeconds(positionSecond);
         var startInfo = new ProcessStartInfo("ffmpeg")
         {
-            Arguments = $"-y -i \"{filePath}\" -ss 0 -vframes 1 -q:v 0 \"{thumbnailImagePath}\"",
+            Arguments = $"-y -i \"{filePath}\" -ss {position:hh\\:mm\\:ss\\.fff} -vframes 1 -q:v 0 \"{thumbnailImagePath}\"",
             UseShellExecute = false,
             CreateNoWindow = true
         };
