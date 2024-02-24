@@ -91,6 +91,7 @@
             ScrollViewer.VerticalScrollBarVisibility="Visible"
             behavior:ListViewDragBehavior.DragOverEffect="True"
             behavior:ListViewHorizontalScrollBehavior.ShiftHorizontalScroll="True"
+            behavior:ListViewScrollSpeedBehavior.ScrollSpeedRate="0.01"
             Drop="SourceList_OnDrop"
             ItemsSource="{Binding MovieInfoList}"
             ItemTemplate="{StaticResource ThumbnailHidden}" >
