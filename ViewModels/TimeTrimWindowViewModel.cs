@@ -22,11 +22,11 @@ internal partial class TimeTrimWindowViewModel : ObservableObject, IDisposable
 
     public Task<(TimeSpan?, TimeSpan?)> ResultWaitable => _enterWaitable.Task;
 
-    public TimeTrimWindowViewModel(string filePath, TimeSpan duration)
+    public TimeTrimWindowViewModel(MovieInfo info)
     {
-        MoviePath = filePath;
-        TrimedDuration = duration.ToString(_timeSpanFormat);
-        _defaultDuration = duration.TotalSeconds;
+        MoviePath = info.FilePath;
+        TrimedDuration = info.Duration.ToString(_timeSpanFormat);
+        _defaultDuration = info.Duration.TotalSeconds;
 
         TrimStart
             // TrimStart.Valueが変更されたときのイベントハンドラを定義する
@@ -37,6 +37,22 @@ internal partial class TimeTrimWindowViewModel : ObservableObject, IDisposable
             // TrimEnd.Valueが変更されたときのイベントハンドラを定義する
             .Subscribe(OnTrimEndChanged)
             .AddTo(_disposables);
+
+        try
+        {
+            // 初期開始位置（=0）でのサムネイルを表示する
+            var startImageUri = MovieInfo.GetThumbnailUri(MoviePath, 0);
+            StartImage = new BitmapImage(startImageUri);
+
+            if (0 == info.FrameRate) throw new InvalidOperationException();
+            // 初期開始位置（=E）でのサムネイルを表示する
+            var endImageUri = MovieInfo.GetThumbnailUri(MoviePath, Math.Floor(_defaultDuration) - 1 / info.FrameRate);
+            EndImage = new BitmapImage(endImageUri);
+        }
+        catch (Exception e)
+        {
+            System.Diagnostics.Debug.WriteLine(e);
+        }
     }
 
     public void Dispose()
@@ -48,7 +64,7 @@ internal partial class TimeTrimWindowViewModel : ObservableObject, IDisposable
 
     /// <summary> 動画ファイルのパス </summary>
     [ObservableProperty] private string _moviePath = string.Empty;
-    
+
     /// <summary> 時間範囲開始時刻秒数 </summary>
     public ReactivePropertySlim<double?> TrimStart { get; } = new(null);
     /// <summary> 時間範囲終了時刻秒数 </summary>
@@ -61,13 +77,15 @@ internal partial class TimeTrimWindowViewModel : ObservableObject, IDisposable
     [ObservableProperty] private BitmapImage? _endImage;
 
 
-    [RelayCommand] private void SetStartTime(double currentPosition)
+    [RelayCommand]
+    private void SetStartTime(double currentPosition)
     {
         // 小数点第3位まで丸める
         TrimStart.Value = Math.Round(currentPosition / 1000, 3);
     }
 
-    [RelayCommand] private void SetEndTime(double currentPosition)
+    [RelayCommand]
+    private void SetEndTime(double currentPosition)
     {
         // 小数点第3位まで丸める
         TrimEnd.Value = Math.Round(currentPosition / 1000, 3);
@@ -80,7 +98,7 @@ internal partial class TimeTrimWindowViewModel : ObservableObject, IDisposable
     private void OnTrimStartChanged(double? time)
     {
         // timeがnullでないとき
-        if(time is double trimStartTime)
+        if (time is double trimStartTime)
         {
             // timeにおけるサムネイルを取得してImageに更新
             var imageUri = MovieInfo.GetThumbnailUri(MoviePath, trimStartTime);
@@ -106,7 +124,7 @@ internal partial class TimeTrimWindowViewModel : ObservableObject, IDisposable
     private void OnTrimEndChanged(double? time)
     {
         // timeがnullでないとき
-        if(time is double trimEndTime)
+        if (time is double trimEndTime)
         {
             // timeにおけるサムネイルを取得してImageに更新
             var imageUri = MovieInfo.GetThumbnailUri(MoviePath, trimEndTime);
@@ -130,9 +148,9 @@ internal partial class TimeTrimWindowViewModel : ObservableObject, IDisposable
     {
         TimeSpan? start = null, end = null;
         // TrimStartがdouble型（=nullではない）のとき、startにはTrimStartのTimeSpanを入れる
-        if(TrimStart.Value is double trimStart) start = TimeSpan.FromSeconds(trimStart);
+        if (TrimStart.Value is double trimStart) start = TimeSpan.FromSeconds(trimStart);
         // TrimEndがdouble型（=nullではない）のとき、endにはTrimEndのTimeSpanを入れる
-        if(TrimEnd.Value is double trimEnd) end = TimeSpan.FromSeconds(trimEnd);
+        if (TrimEnd.Value is double trimEnd) end = TimeSpan.FromSeconds(trimEnd);
         _enterWaitable.SetResult((start, end));
     }
 }

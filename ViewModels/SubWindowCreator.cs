@@ -31,7 +31,7 @@ internal static class SubWindowCreator
     public static (TimeTrimWindow, TimeTrimWindowViewModel) CreateTimeTrimWindow(MovieInfo info)
     {
         var timeTrimWindow = new TimeTrimWindow();
-        var timeTrimWindowViewModel = new TimeTrimWindowViewModel(info.FilePath, info.Duration);
+        var timeTrimWindowViewModel = new TimeTrimWindowViewModel(info);
         timeTrimWindow.DataContext = timeTrimWindowViewModel;
         timeTrimWindow.Closing += (_, _) => timeTrimWindowViewModel.Dispose();
         timeTrimWindow.Show();
