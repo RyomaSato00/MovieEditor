@@ -86,7 +86,7 @@ internal class ParallelImageGenerateRunner : IDisposable, IAnyProcess
             {
                 // 出力パスがすでに指定されていればそれを使用する。
                 // 出力パスがなければ（nullならば）ここで指定する
-                movieInfo.OutputPath ??= ToOutputPath(movieInfo.FilePath, outputFolder);
+                movieInfo.OutputPath ??= ToOutputPath(movieInfo.FilePath, outputFolder, movieInfo.DuplicateCount);
                 ImageGenerator.Generate(movieInfo, parameter);
 
                 cancel.ThrowIfCancellationRequested();
@@ -103,10 +103,19 @@ internal class ParallelImageGenerateRunner : IDisposable, IAnyProcess
     }
 
     private static string ToOutputPath(
-        string inputPath, string outputFolder
+        string inputPath, string outputFolder, int duplicateCount
     )
     {
-        var fileName = Path.GetFileName(inputPath);
+        string fileName;
+        // 複製回数が1回以上
+        if (0 < duplicateCount)
+        {
+            fileName = $"{Path.GetFileName(inputPath)}({duplicateCount})";
+        }
+        else
+        {
+            fileName = Path.GetFileName(inputPath);
+        }
 
         return Path.Combine(outputFolder, fileName);
     }
