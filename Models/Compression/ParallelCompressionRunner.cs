@@ -1,99 +1,173 @@
+using System.Diagnostics;
 using System.IO;
 using MovieEditor.Models.Information;
 using MyCommonFunctions;
 
 namespace MovieEditor.Models.Compression;
 
-internal class ParallelCompressionRunner : IDisposable, IAnyProcess
+internal class ParallelCompressionRunner(MovieInfo[] sources) : IDisposable, IAnyProcess
 {
     private static readonly object _parallelLock = new();
-    private CancellationTokenSource? _cancelable = null;
 
-    public event Action<int>? OnStartProcess = null;
+    private readonly CancellationTokenSource _cancelable = new();
+    /// <summary> 処理を行う動画ソース </summary>
+    private readonly MovieInfo[] _sources = sources;
+    /// <summary> 処理完了確認用チェックリスト </summary>
+    private readonly Dictionary<MovieInfo, bool> _checkList = sources.ToDictionary(movieInfo => movieInfo, _ => false);
+    /// <summary> プロセスキャンセル用一時保存リスト </summary>
+    private readonly List<Process> _processes = [];
+
+    /// <summary> 処理を行うファイルの総数 </summary>
+    public int FileCount => _sources.Length;
+    /// <summary> 1つのファイルの処理が完了するたびに実行するイベント（引数：処理完了したファイルの数） </summary>
     public event Action<int>? OnUpdateProgress = null;
 
     /// <summary>
-    /// 非同期で動画圧縮を並列に実行する
+    /// 動画圧縮を並列に実行する
     /// </summary>
-    /// <param name="sources"></param>
     /// <param name="outputFolder">出力先フォルダパス</param>
     /// <param name="attachedNameTag"></param>
     /// <param name="parameter">圧縮条件</param>
     /// <returns>処理済みファイル配列</returns>
-    public async Task<MovieInfo[]> Run
+    public MovieInfo[] Run
     (
-        MovieInfo[] sources,
         string outputFolder,
         string? attachedNameTag,
         CompressionParameter parameter
     )
     {
-        int finishedCount = 0;
-        int allCount = sources.Length;
-        _cancelable?.Cancel();
-        _cancelable = new CancellationTokenSource();
-        // 処理完了確認用チェックリストを作成
-        var checkList = ToCheckList(sources);
+        MyConsole.WriteLine($"圧縮処理開始", MyConsole.Level.Info);
 
-        OnStartProcess?.Invoke(allCount);
+        // 処理開始時刻
         var startTime = DateTime.Now;
-        await Task.Run(() =>
+
+        try
         {
-            try
-            {
-                sources
-                .AsParallel()
-                .WithCancellation(_cancelable.Token)
-                .WithDegreeOfParallelism(2)
-                .ForAll(movieInfo =>
-                {
-                    // 出力パスがすでに指定されていればそれを使用する。
-                    // 出力パスがなければ（nullならば）ここで指定する
-                    movieInfo.OutputPath ??= GetOutputPath(movieInfo.FilePath, outputFolder, attachedNameTag, movieInfo.DuplicateCount, parameter.Format);
-                    VideoCompressor.Compress
-                    (
-                        movieInfo,
-                        parameter,
-                        _cancelable.Token
-                    );
+            // 並列に圧縮処理を行う
+            ProcessParallelly(
+                outputFolder, attachedNameTag, parameter
+            );
+        }
+        catch (OperationCanceledException)
+        {
+            MyConsole.WriteLine("キャンセルされました", MyConsole.Level.Info);
+        }
+        catch (Exception e)
+        {
+            MyConsole.WriteLine($"想定外のエラー:{e}", MyConsole.Level.Error);
+            System.Diagnostics.Debug.WriteLine(e);
+        }
 
-                    _cancelable.Token.ThrowIfCancellationRequested();
-
-                    long fileSize = new FileInfo(movieInfo.OutputPath).Length / 1000;
-                    lock (_parallelLock)
-                    {
-                        finishedCount++;
-                        // チェックリストを完了にする
-                        checkList[movieInfo] = true;
-                        OnUpdateProgress?.Invoke(finishedCount);
-                        MyConsole.WriteLine($"{movieInfo.FileName} has finished ({fileSize} kb) ({finishedCount}/{allCount})", MyConsole.Level.Info);
-                    }
-                });
-            }
-            catch (OperationCanceledException)
-            {
-                MyConsole.WriteLine("キャンセルされました", MyConsole.Level.Info);
-            }
-            catch (Exception e)
-            {
-                MyConsole.WriteLine($"想定外のエラー:{e.Message}", MyConsole.Level.Error);
-                System.Diagnostics.Debug.WriteLine(e);
-            }
-        },
-        _cancelable.Token);
-
+        // 処理完了までにかかった時間を取得する
         var processTime = DateTime.Now - startTime;
+
+        // コンソール出力
         MyConsole.WriteLine($"完了:{(long)processTime.TotalMilliseconds}ms", MyConsole.Level.Info);
+
         // 処理済みの動画データの配列を返す
-        return checkList
+        return _checkList
             .Where(item => true == item.Value)
             .Select(item => item.Key)
             .ToArray();
     }
 
+    /// <summary>
+    /// 圧縮処理を並列に行う
+    /// </summary>
+    /// <param name="outputFolder">出力先フォルダパス</param>
+    /// <param name="attachedNameTag"></param>
+    /// <param name="parameter">圧縮条件</param>
+    private void ProcessParallelly(
+        string outputFolder,
+        string? attachedNameTag,
+        CompressionParameter parameter
+    )
+    {
+        // 処理が終了したファイルの数
+        int finishedCount = 0;
+        // 処理を行う予定のファイル総数
+        int allCount = _sources.Length;
+
+        _sources
+            .AsParallel()
+            .WithCancellation(_cancelable.Token)
+            // .WithDegreeOfParallelism(2)
+            .ForAll(movieInfo =>
+            {
+                // キャンセルされていたらここで終了
+                _cancelable.Token.ThrowIfCancellationRequested();
+
+                // 出力パスがすでに指定されていればそれを使用する。
+                // 出力パスがなければ（nullならば）ここで指定する
+                movieInfo.OutputPath ??= GetOutputPath(
+                    movieInfo.FilePath, outputFolder, attachedNameTag, movieInfo.DuplicateCount, parameter.Format
+                );
+
+                // 圧縮処理のプロセスオブジェクトを作成する。ここではまだ実行されていない
+                using var process = VideoCompressor.ToCompressionProcess(movieInfo, parameter);
+
+                // 圧縮処理のプロセスを一時保存用リストに追加する。リストはスレッドセーフではなため、ロックをかける
+                lock (_parallelLock)
+                {
+                    _processes.Add(process);
+                }
+
+                // 圧縮処理プロセス開始
+                process.Start();
+
+                // 圧縮処理待機
+                process.WaitForExit();
+
+                // 圧縮処理中にキャンセルされたときはここで終了
+                _cancelable.Token.ThrowIfCancellationRequested();
+
+                // 圧縮処理が完了したファイルのファイルサイズ(kb)を取得する
+                var fileSize = new FileInfo(movieInfo.OutputPath).Length / 1000;
+
+                lock (_parallelLock)
+                {
+                    // 一時保存用リストから今回のプロセスを削除する
+                    _processes.Remove(process);
+
+                    // 処理完了ファイル数をインクリメント
+                    finishedCount++;
+
+                    // 処理完了イベントを発行
+                    OnUpdateProgress?.Invoke(finishedCount);
+
+                    // コンソール出力
+                    MyConsole.WriteLine($"{movieInfo.FileName} has been finished ({fileSize} kb) ({finishedCount}/{allCount})", MyConsole.Level.Info);
+
+                    // チェックリストを完了にする
+                    _checkList[movieInfo] = true;
+                }
+            });
+    }
+
+    /// <summary>
+    /// 圧縮処理キャンセル
+    /// </summary>
     public void Cancel()
     {
+        // キャンセルを発行
         _cancelable?.Cancel();
+
+        // リストはスレッドセーフではないため、ロックをかける
+        lock (_parallelLock)
+        {
+            foreach (var process in _processes)
+            {
+                // プロセス中断
+                process.Kill();
+
+                // プロセス破棄
+                process.Dispose();
+            }
+
+            // 一時保存用リストの中身を全削除
+            // （キャンセルが複数回呼ばれるとprocess.Disposeが複数回行われ、エラーとなる）
+            _processes.Clear();
+        }
     }
 
     /// <summary>
@@ -114,7 +188,7 @@ internal class ParallelCompressionRunner : IDisposable, IAnyProcess
         string format
     )
     {
-        var purefileName = Path.GetFileNameWithoutExtension(inputPath);
+        var pureFileName = Path.GetFileNameWithoutExtension(inputPath);
 
         string fileName;
         // タグを付けないとき
@@ -123,11 +197,11 @@ internal class ParallelCompressionRunner : IDisposable, IAnyProcess
             // 複製回数が1回以上
             if (0 < duplicateCount)
             {
-                fileName = $"{purefileName}({duplicateCount}).{format}";
+                fileName = $"{pureFileName}({duplicateCount}).{format}";
             }
             else
             {
-                fileName = $"{purefileName}.{format}";
+                fileName = $"{pureFileName}.{format}";
             }
         }
         // タグを付けるとき
@@ -136,20 +210,14 @@ internal class ParallelCompressionRunner : IDisposable, IAnyProcess
             // 複製回数が1回以上
             if (0 < duplicateCount)
             {
-                fileName = $"{purefileName}({duplicateCount})_{attachedNameTag}.{format}";
+                fileName = $"{pureFileName}({duplicateCount})_{attachedNameTag}.{format}";
             }
             else
             {
-                fileName = $"{purefileName}_{attachedNameTag}.{format}";
+                fileName = $"{pureFileName}_{attachedNameTag}.{format}";
             }
         }
         return Path.Combine(outputFolder, fileName);
-    }
-
-    private static Dictionary<MovieInfo, bool> ToCheckList(MovieInfo[] sources)
-    {
-        // keyを各MovieInfoオブジェクト、valueをfalseにもつdictionary型
-        return sources.ToDictionary(movieInfo => movieInfo, value => false);
     }
 
     public void Dispose()

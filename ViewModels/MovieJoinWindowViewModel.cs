@@ -65,13 +65,13 @@ internal partial class MovieJoinWindowViewModel : ObservableObject, IDisposable
     {
         System.Diagnostics.Debug.WriteLine("決定");
 
-        using var joinProcess = new VideoJoiner();
         var argumentFiles = MovieInfoList
             .Where(item => item.IsChecked)
             .Select(item => item.Info)
             .ToArray();
+        using var joinProcess = new VideoJoiner(argumentFiles);
 
-        var joinedVideo = await joinProcess.Join(argumentFiles);
+        var joinedVideo = await joinProcess.Join();
         _joinWaitable.SetResult((joinedVideo, argumentFiles));
     }
 

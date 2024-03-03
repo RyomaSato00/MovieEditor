@@ -10,9 +10,11 @@ using System.Windows.Shell;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using MovieEditor.Models;
+using MovieEditor.Models.AudioExtraction;
 using MovieEditor.Models.Compression;
 using MovieEditor.Models.ImageGenerate;
 using MovieEditor.Models.Information;
+using MovieEditor.Models.SpeedChange;
 using MovieEditor.Views;
 using MyCommonFunctions;
 using Reactive.Bindings;
@@ -218,34 +220,38 @@ internal partial class MainWindowViewModel : ObservableObject, IDisposable
         switch ((ProcessModeEnum)MainSettings.ProcessMode)
         {
             case ProcessModeEnum.VideoCompression:
-                MyConsole.WriteLine("圧縮処理開始", MyConsole.Level.Info);
-                using (var disposable = SubWindowCreator.CreateProgressWindow(_modelManager.ParallelComp))
+                using (var compressor = new ParallelCompressionRunner(sources))
                 {
-                    processedFiles = await RunCompression(sources);
+                    var (window, viewModel) = SubWindowCreator.CreateProgressWindow(compressor);
+                    processedFiles = await RunCompression(compressor);
+                    window.Close();
                 }
                 break;
 
             case ProcessModeEnum.AudioExtraction:
-                MyConsole.WriteLine("音声抽出処理開始", MyConsole.Level.Info);
-                using (var disposable = SubWindowCreator.CreateProgressWindow(_modelManager.ParallelExtract))
+                using (var extractor = new ParallelExtractionRunner(sources))
                 {
-                    processedFiles = await RunExtraction(sources);
+                    var (window, viewModel) = SubWindowCreator.CreateProgressWindow(extractor);
+                    processedFiles = await RunExtraction(extractor);
+                    window.Close();
                 }
                 break;
 
             case ProcessModeEnum.SpeedChange:
-                MyConsole.WriteLine("再生速度変更開始", MyConsole.Level.Info);
-                using (var disposable = SubWindowCreator.CreateProgressWindow(_modelManager.ParallelSpeedChange))
+                using (var speedChanger = new ParallelSpeedChangeRunner(sources))
                 {
-                    processedFiles = await RunSpeedChange(sources);
+                    var (window, viewModel) = SubWindowCreator.CreateProgressWindow(speedChanger);
+                    processedFiles = await RunSpeedChange(speedChanger);
+                    window.Close();
                 }
                 break;
 
             case ProcessModeEnum.ImageGenerate:
-                MyConsole.WriteLine("画像出力処理開始", MyConsole.Level.Info);
-                using (var disposable = SubWindowCreator.CreateProgressWindow(_modelManager.ParallelImageGenerate))
+                using (var generator = new ParallelImageGenerateRunner(sources))
                 {
-                    processedFiles = await RunImageGenerate(sources);
+                    var (window, viewModel) = SubWindowCreator.CreateProgressWindow(generator);
+                    processedFiles = await RunImageGenerate(generator);
+                    window.Close();
                 }
                 break;
 
@@ -259,7 +265,7 @@ internal partial class MainWindowViewModel : ObservableObject, IDisposable
     /// 動画圧縮処理を非同期実行する
     /// </summary>
     /// <returns>処理済みファイル配列</returns>
-    private async Task<MovieInfo[]> RunCompression(MovieInfo[] sources)
+    private async Task<MovieInfo[]> RunCompression(ParallelCompressionRunner compressor)
     {
         CompressionParameter parameter = new()
         {
@@ -272,13 +278,15 @@ internal partial class MainWindowViewModel : ObservableObject, IDisposable
         };
         try
         {
-            var processedFiles = await _modelManager.ParallelComp.Run
-            (
-                sources,
-                OutputDirectory,
-                MainSettings.AttachedNameTag,
-                parameter
-            );
+            var processedFiles = await Task.Run(() =>
+            {
+                return compressor.Run(
+                    OutputDirectory,
+                    MainSettings.AttachedNameTag,
+                    parameter
+                );
+            });
+
             return processedFiles;
         }
         catch (Exception e)
@@ -293,17 +301,16 @@ internal partial class MainWindowViewModel : ObservableObject, IDisposable
     /// 音声抽出処理を非同期実行する
     /// </summary>
     /// <returns>処理済みファイル配列</returns>
-    private async Task<MovieInfo[]> RunExtraction(MovieInfo[] sources)
+    private async Task<MovieInfo[]> RunExtraction(ParallelExtractionRunner extractor)
     {
         try
         {
-            var processedFiles = await _modelManager.ParallelExtract.Run
-            (
-                sources,
-                OutputDirectory,
-                MainSettings.AttachedNameTag
-            );
-            return processedFiles;
+            return await Task.Run(() =>
+            {
+                return extractor.Run(
+                    OutputDirectory, MainSettings.AttachedNameTag
+                );
+            });
         }
         catch (Exception e)
         {
@@ -316,18 +323,16 @@ internal partial class MainWindowViewModel : ObservableObject, IDisposable
     /// 再生速度変更処理を非同期実行する
     /// </summary>
     /// <returns>処理済みファイル配列</returns>
-    private async Task<MovieInfo[]> RunSpeedChange(MovieInfo[] sources)
+    private async Task<MovieInfo[]> RunSpeedChange(ParallelSpeedChangeRunner speedChanger)
     {
         try
         {
-            var processedFiles = await _modelManager.ParallelSpeedChange.Run
-            (
-                sources,
-                OutputDirectory,
-                MainSettings.AttachedNameTag,
-                MainSettings.Speed.SpeedRate
-            );
-            return processedFiles;
+            return await Task.Run(() =>
+            {
+                return speedChanger.Run(
+                    OutputDirectory, MainSettings.AttachedNameTag, MainSettings.Speed.SpeedRate
+                );
+            });
         }
         catch (Exception e)
         {
@@ -341,7 +346,7 @@ internal partial class MainWindowViewModel : ObservableObject, IDisposable
     /// </summary>
     /// <param name="sources"></param>
     /// <returns>処理済みファイル配列</returns>
-    private async Task<MovieInfo[]> RunImageGenerate(MovieInfo[] sources)
+    private async Task<MovieInfo[]> RunImageGenerate(ParallelImageGenerateRunner generator)
     {
         var parameter = new ImageGenerateParameter()
         {
@@ -352,9 +357,12 @@ internal partial class MainWindowViewModel : ObservableObject, IDisposable
         };
         try
         {
-            return await _modelManager.ParallelImageGenerate.Run(
-                sources, OutputDirectory, parameter
-            );
+            return await Task.Run(() =>
+            {
+                return generator.Run(
+                    OutputDirectory, parameter
+                );
+            });
         }
         catch (Exception e)
         {

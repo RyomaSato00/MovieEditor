@@ -6,7 +6,7 @@ using System.IO;
 
 namespace MovieEditor.Models.Join;
 
-internal class VideoJoiner : IDisposable
+internal class VideoJoiner(MovieInfo[] sources) : IDisposable
 {
     public static readonly string JoinSourceCacheFolder = @"cache\join\sources";
     public static readonly string JoinedFileCacheFolder = @"cache\join\joined";
@@ -17,32 +17,32 @@ internal class VideoJoiner : IDisposable
     public static void DeleteJoinCaches()
     {
         // キャッシュフォルダが存在するとき
-        if(Directory.Exists(JoinSourceCacheFolder))
+        if (Directory.Exists(JoinSourceCacheFolder))
         {
             var files = Directory.GetFiles(JoinSourceCacheFolder);
-            foreach(var file in files)
+            foreach (var file in files)
             {
                 try
                 {
                     File.Delete(file);
                 }
-                catch(Exception)
+                catch (Exception)
                 {
                     continue;
                 }
             }
         }
         // キャッシュフォルダが存在するとき
-        if(Directory.Exists(JoinedFileCacheFolder))
+        if (Directory.Exists(JoinedFileCacheFolder))
         {
             var files = Directory.GetFiles(JoinedFileCacheFolder);
-            foreach(var file in files)
+            foreach (var file in files)
             {
                 try
                 {
                     File.Delete(file);
                 }
-                catch(Exception)
+                catch (Exception)
                 {
                     continue;
                 }
@@ -50,10 +50,15 @@ internal class VideoJoiner : IDisposable
         }
     }
 
-    // 結合処理には圧縮処理のオブジェクトが必要
-    private readonly ParallelCompressionRunner _compressor = new();
 
-    private CancellationTokenSource? _cancelable = null;
+    private readonly CancellationTokenSource _cancelable = new();
+    /// <summary> 処理を行う動画ソース </summary>
+    private readonly MovieInfo[] _sources = sources;
+    /// <summary> 圧縮処理用オブジェクト </summary>
+    private readonly ParallelCompressionRunner _compressor = new(sources);
+
+    /// <summary> プロセスキャンセル用一時保存変数 </summary>
+    private Process? _runningProcess = null;
 
     /// <summary>
     /// 動画結合処理キャンセル
@@ -61,28 +66,27 @@ internal class VideoJoiner : IDisposable
     public void Cancel()
     {
         _compressor.Cancel();
-        _cancelable?.Cancel();
+        _cancelable.Cancel();
+        _runningProcess?.Kill();
+        _runningProcess?.Dispose();
+        _runningProcess = null;
     }
 
     /// <summary>
     /// 動画結合処理を行う
     /// </summary>
-    /// <param name="movieInfos"></param>
     /// <returns>結合によって生成した動画のパス</returns>
-    public async Task<string> Join(MovieInfo[] movieInfos)
+    public async Task<string> Join()
     {
-        _cancelable?.Cancel();
-        _cancelable = new CancellationTokenSource();
-
         // 時間範囲指定後のファイルまたはコピーをcacheに保存する
 
         // キャッシュフォルダ作成
-        if(false == Directory.Exists(JoinSourceCacheFolder))
+        if (false == Directory.Exists(JoinSourceCacheFolder))
         {
             Directory.CreateDirectory(JoinSourceCacheFolder);
         }
 
-        if(false == Directory.Exists(JoinedFileCacheFolder))
+        if (false == Directory.Exists(JoinedFileCacheFolder))
         {
             Directory.CreateDirectory(JoinedFileCacheFolder);
         }
@@ -90,22 +94,26 @@ internal class VideoJoiner : IDisposable
         // ファイル名に-や()が含まれていると結合できない
         // 結合に使用するファイルの名前を変更する
         int id = 0;
-        foreach(var movie in movieInfos)
-        {   
+        foreach (var movie in _sources)
+        {
             movie.OutputPath = Path.Combine(JoinSourceCacheFolder, $"{id}{movie.Extension}");
             id++;
         }
 
         // キャッシュフォルダに時間範囲トリミング後のファイルを保存。時間範囲指定していない場合もコピーを保存
-        var processedFiles = await _compressor.Run(
-            movieInfos, JoinSourceCacheFolder, null, new CompressionParameter()
-            {
-                VideoCodec = "h264", Format = "mp4"
-            }
-        );
+        var processedFiles = await Task.Run(() =>
+        {
+            return _compressor.Run(
+                JoinSourceCacheFolder, null, new CompressionParameter()
+                {
+                    VideoCodec = "h264",
+                    Format = "mp4"
+                }
+            );
+        });
 
         // 結合リストファイル作成
-        var joinListFile = await CreateJoinListFile(processedFiles, _cancelable.Token);
+        var joinListFile = await CreateJoinListFile(_sources, _cancelable.Token);
 
         // 結合動画生成
         var joinedFile = await Task.Run(() => CreateJoinedVideo(joinListFile), _cancelable.Token);
@@ -137,7 +145,7 @@ internal class VideoJoiner : IDisposable
     /// </summary>
     /// <param name="joinListPath"></param>
     /// <returns>結合によって生成した動画のパス</returns>
-    private static string CreateJoinedVideo(string joinListPath)
+    private string CreateJoinedVideo(string joinListPath)
     {
         var outputPath = Path.Combine(
             JoinedFileCacheFolder,
@@ -153,15 +161,17 @@ internal class VideoJoiner : IDisposable
         Debug.WriteLine($"arg:{processInfo.Arguments}");
         MyConsole.WriteLine($"arg:{processInfo.Arguments}");
 
-        using Process process = new() {StartInfo = processInfo};
+        using var process = new Process() { StartInfo = processInfo };
+        _runningProcess = process;
         process.Start();
         process.WaitForExit();
+        _runningProcess = null;
 
         return outputPath;
     }
 
     public void Dispose()
     {
-        Cancel();   
+        Cancel();
     }
 }

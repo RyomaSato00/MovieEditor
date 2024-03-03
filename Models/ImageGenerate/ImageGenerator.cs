@@ -7,7 +7,7 @@ namespace MovieEditor.Models.ImageGenerate;
 
 internal class ImageGenerator
 {
-    public static void Generate(MovieInfo movieInfo, ImageGenerateParameter parameter)
+    public static Process ToGenerateProcess(MovieInfo movieInfo, ImageGenerateParameter parameter)
     {
         // 出力先
         if (movieInfo.OutputPath is null)
@@ -26,9 +26,7 @@ internal class ImageGenerator
         Debug.WriteLine($"arg:{info.Arguments}");
         MyConsole.WriteLine($"arg:{info.Arguments}");
 
-        using var process = new Process() { StartInfo = info };
-        process.Start();
-        process.WaitForExit();
+        return new Process() { StartInfo = info };
     }
 
     private static string MakeArguments(MovieInfo movieInfo, ImageGenerateParameter parameter)

@@ -2,8 +2,7 @@ namespace MovieEditor.Models;
 
 internal interface IAnyProcess
 {
-    public event Action<int>? OnStartProcess;
-
+    public int FileCount { get; }
     public event Action<int>? OnUpdateProgress;
     public void Cancel();
 }

@@ -8,7 +8,7 @@ namespace MovieEditor.Models.Compression;
 
 internal class VideoCompressor
 {
-    public static void Compress(MovieInfo movieInfo, CompressionParameter parameter, CancellationToken cancelToken)
+    public static Process ToCompressionProcess(MovieInfo movieInfo, CompressionParameter parameter)
     {
         ProcessStartInfo processInfo = new("ffmpeg")
         {
@@ -19,11 +19,7 @@ internal class VideoCompressor
         Debug.WriteLine($"arg:{processInfo.Arguments}");
         MyConsole.WriteLine($"arg:{processInfo.Arguments}");
 
-        using Process process = new() { StartInfo = processInfo };
-        process.Start();
-        process.WaitForExit();
-        // while (false == process.HasExited
-        // && false == cancelToken.IsCancellationRequested) { }
+        return new Process() { StartInfo = processInfo };
     }
 
     private static string MakeArguments(MovieInfo movieInfo, CompressionParameter parameter)
@@ -80,18 +76,18 @@ internal class VideoCompressor
             argList.Add("-an");
         }
         // 時間範囲指定開始時刻
-        if(movieInfo.TrimStart is not null)
+        if (movieInfo.TrimStart is not null)
         {
             argList.Add($"-ss {movieInfo.TrimStart:hh\\:mm\\:ss\\.fff}");
         }
         // 時間範囲指定終了時刻
-        if(movieInfo.TrimEnd is not null)
+        if (movieInfo.TrimEnd is not null)
         {
             argList.Add($"-to {movieInfo.TrimEnd:hh\\:mm\\:ss\\.fff}");
         }
 
         // 出力先指定
-        if(movieInfo.OutputPath is null)
+        if (movieInfo.OutputPath is null)
         {
             throw new ArgumentNullException("出力先が指定されていません");
         }

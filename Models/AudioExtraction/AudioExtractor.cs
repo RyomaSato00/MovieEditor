@@ -6,28 +6,33 @@ namespace MovieEditor.Models.AudioExtraction;
 
 internal class AudioExtractor
 {
-    public static void Extract(MovieInfo movieInfo, string outputPath, CancellationToken cancelToken)
+    public static Process ToExtractionProcess(MovieInfo movieInfo)
     {
         ProcessStartInfo processInfo = new("ffmpeg")
         {
-            Arguments = MakeArguments(movieInfo, outputPath),
+            Arguments = MakeArguments(movieInfo),
             UseShellExecute = false,
             CreateNoWindow = true
         };
+        Debug.WriteLine($"arg:{processInfo.Arguments}");
         MyConsole.WriteLine($"arg:{processInfo.Arguments}");
 
-        using Process process = new() {StartInfo = processInfo};
-        process.Start();
-
-        while(false == process.HasExited
-            && false == cancelToken.IsCancellationRequested) {}
+        return new Process() { StartInfo = processInfo };
     }
 
-    private static string MakeArguments(MovieInfo movieInfo, string outputPath)
+    private static string MakeArguments(MovieInfo movieInfo)
     {
         List<string> argList = [];
         argList.Add($"-y -i \"{movieInfo.FilePath}\"");
-        argList.Add($"-vn -acodec aac \"{outputPath}\"");
+
+        // 出力先指定
+        if (movieInfo.OutputPath is null)
+        {
+            throw new ArgumentNullException("出力先が指定されていません");
+        }
+
+        argList.Add($"-vn -acodec aac \"{movieInfo.OutputPath}\"");
+
         return string.Join(" ", argList);
     }
 }

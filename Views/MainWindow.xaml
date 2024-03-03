@@ -87,7 +87,7 @@
                 <Button Content="クリア" Command="{Binding ClearSourceFilesCommand}" />
             </ui:SimpleStackPanel>
         </ui:SimpleStackPanel>
-		<ListView Name="SourceList" Margin="10" Height="350" Width="750"
+		<ListView Name="SourceList" Margin="10" Height="350" HorizontalAlignment="Stretch"
             ScrollViewer.VerticalScrollBarVisibility="Visible"
             behavior:ListViewDragBehavior.DragOverEffect="True"
             behavior:ListViewHorizontalScrollBehavior.ShiftHorizontalScroll="True"
@@ -286,6 +286,8 @@
             TextWrapping="Wrap" 
             VerticalScrollBarVisibility="Visible"
             behavior:TextBoxBehavior.AutoScrollToEnd="True"
-            Height="150" Width="750" />
+            Height="150" 
+            HorizontalAlignment="Stretch"
+             />
     </ui:SimpleStackPanel>
 </Window>
