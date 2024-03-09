@@ -164,30 +164,61 @@
                     <ui:SimpleStackPanel Orientation="Horizontal" Spacing="10">
                         <ui:SimpleStackPanel Orientation="Horizontal">
                             <Label Content="Width :" VerticalContentAlignment="Center" Margin="8" />
-                            <TextBox
+                            <ComboBox
+                                Name="CompWidth"
+                                IsEditable="True"
                                 Text="{Binding MainSettings.Comp.ScaleWidth}"
                                 HorizontalContentAlignment="Right"
-                                Height="20" Width="80"/>
+                                Height="32" Width="80">
+                                <ComboBoxItem Content="-1" />
+                                <ComboBoxItem Content="1920" />
+                                <ComboBoxItem Content="1600" />
+                                <ComboBoxItem Content="1280" />
+                                <ComboBoxItem Content="1024" />
+                                <ComboBoxItem Content="768" />
+                                <ComboBoxItem Content="640" />
+                                <ComboBoxItem Content="480" />
+                            </ComboBox>
                         </ui:SimpleStackPanel>
                         <ui:SimpleStackPanel Orientation="Horizontal">
                             <Label Content="Height :" VerticalContentAlignment="Center" Margin="8" />
-                            <TextBox
+                            <ComboBox
+                                Name="CompHeight"
+                                IsEditable="True"
                                 Text="{Binding MainSettings.Comp.ScaleHeight}"
                                 HorizontalContentAlignment="Right"
-                                Height="20" Width="80"/>
+                                Height="32" Width="80">
+                                <ComboBoxItem Content="-1" />
+                                <ComboBoxItem Content="1080" />
+                                <ComboBoxItem Content="900" />
+                                <ComboBoxItem Content="720" />
+                                <ComboBoxItem Content="576" />
+                                <ComboBoxItem Content="432" />
+                                <ComboBoxItem Content="360" />
+                                <ComboBoxItem Content="270" />
+                            </ComboBox>
                         </ui:SimpleStackPanel>
                         <ui:SimpleStackPanel Orientation="Horizontal">
                             <Label Content="フレーム率 :" VerticalContentAlignment="Center" Margin="8" />
-                            <TextBox
+                            <ComboBox
+                                IsEditable="True"
                                 Text="{Binding MainSettings.Comp.FrameRate}"
                                 HorizontalContentAlignment="Right"
-                                Height="20" Width="60"/>
+                                Height="32" Width="70">
+                                <ComboBoxItem Content="-1" />
+                                <ComboBoxItem Content="30" />
+                                <ComboBoxItem Content="60" />
+                            </ComboBox>
                         </ui:SimpleStackPanel>
                         <ui:SimpleStackPanel Orientation="Horizontal">
                             <Label Content="コーデック :" VerticalContentAlignment="Center" Margin="8" />
-                            <TextBox
+                            <ComboBox
+                                IsEditable="True"
                                 Text="{Binding MainSettings.Comp.Codec}"
-                                Height="20" Width="80"/>
+                                Height="32" Width="80">
+                                <ComboBoxItem Content="h264" />
+                                <ComboBoxItem Content="hevc" />
+                            </ComboBox>
                         </ui:SimpleStackPanel>
                         <ui:SimpleStackPanel Orientation="Horizontal">
                             <Label Content="音声削除 :" VerticalContentAlignment="Center" Margin="8" />
@@ -197,9 +228,12 @@
                     <ui:SimpleStackPanel Orientation="Horizontal" Spacing="10">
                         <ui:SimpleStackPanel Orientation="Horizontal">
                             <Label Content="出力形式 :" VerticalContentAlignment="Center" Margin="8" />
-                            <TextBox 
+                            <ComboBox
+                                IsEditable="True"
                                 Text="{Binding MainSettings.Comp.Format}"
-                                Height="20" Width="80" />
+                                Height="32" Width="80" >
+                                <ComboBoxItem Content="mp4" />
+                            </ComboBox>
                         </ui:SimpleStackPanel>
                     </ui:SimpleStackPanel>
                 </ui:SimpleStackPanel>
@@ -226,9 +260,14 @@
                     <ui:SimpleStackPanel Orientation="Horizontal" Spacing="12">
                         <ui:SimpleStackPanel Orientation="Horizontal">
                             <Label Content="フォーマット：" HorizontalContentAlignment="Right" VerticalContentAlignment="Center" />
-                            <TextBox Text="{Binding MainSettings.ImgGenerate.Format}"
-                                Height="20" Width="80"
-                                HorizontalContentAlignment="Left" VerticalContentAlignment="Center" />
+                            <ComboBox
+                                IsEditable="True" 
+                                Text="{Binding MainSettings.ImgGenerate.Format}"
+                                Height="32" Width="80"
+                                HorizontalContentAlignment="Left" VerticalContentAlignment="Center" >
+                                <ComboBoxItem Content="png" />
+                                <ComboBoxItem Content="jpg" />
+                            </ComboBox>
                         </ui:SimpleStackPanel>
 
                         <ui:SimpleStackPanel Orientation="Horizontal">
@@ -247,9 +286,15 @@
 
                         <ui:SimpleStackPanel Orientation="Horizontal">
                             <Label Content="品質：" HorizontalContentAlignment="Right" VerticalContentAlignment="Center" />
-                            <TextBox Text="{Binding MainSettings.ImgGenerate.Quality}"
-                                Height="20" Width="80"
-                                HorizontalContentAlignment="Right" VerticalContentAlignment="Center" />
+                            <ComboBox
+                                 Text="{Binding MainSettings.ImgGenerate.Quality}"
+                                Height="32" Width="80"
+                                HorizontalContentAlignment="Right" VerticalContentAlignment="Center" >
+                                <ComboBoxItem Content="-1" />
+                                <ComboBoxItem Content="0" />
+                                <ComboBoxItem Content="1" />
+                                <ComboBoxItem Content="2" />
+                            </ComboBox>
                         </ui:SimpleStackPanel>
                     </ui:SimpleStackPanel>
                 </ui:SimpleStackPanel>
