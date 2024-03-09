@@ -73,7 +73,7 @@
         </DataTemplate>
     </Window.Resources>
 
-    <ui:SimpleStackPanel Margin="12" Spacing="24">
+    <ui:SimpleStackPanel Margin="12" Spacing="8">
         <ui:SimpleStackPanel Orientation="Horizontal" Spacing="220" HorizontalAlignment="Center">
             <ui:SimpleStackPanel Orientation="Horizontal" HorizontalAlignment="Left">
                 <Label Content="ファイル数：" VerticalContentAlignment="Center" />
@@ -278,6 +278,10 @@
                 Style="{StaticResource AccentButtonStyle}"
                 Command="{Binding RunCommand}"
                 Foreground="Black" FontWeight="Bold" FontSize="18" FontFamily="Arial" />
+        </ui:SimpleStackPanel>
+        <ui:SimpleStackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+            <Label Content="完了後フォルダを開く：" VerticalAlignment="Center" />
+            <CheckBox IsChecked="{Binding MainSettings.OpenExplorer}" />
         </ui:SimpleStackPanel>
 
         <TextBox 

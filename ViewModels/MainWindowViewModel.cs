@@ -563,11 +563,8 @@ internal partial class MainWindowViewModel : ObservableObject, IDisposable
         };
         using var process = new Process() { StartInfo = info };
         // UIをフリーズさせないために、非同期でエクスプローラが起動するのを待つ
-        await Task.Run(() =>
-        {
-            process.Start();
-            process.WaitForExit();
-        });
+        process.Start();
+        await process.WaitForExitAsync();
     }
 }
 
