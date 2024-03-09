@@ -307,6 +307,7 @@
                 <TextBox 
                     Text="{Binding OutputDirectory}"
                     behavior:TextBoxDragBehavior.DragOverEffect="True"
+                    behavior:TextBoxExplorerPathBehavior.UseExplorerPathMenu="True"
                     Drop="OutDirectory_OnDrop"
                     Margin="10" Width="350" />
                 <Button 
